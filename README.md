@@ -45,7 +45,7 @@ TRADING_MODE=paper
 PORT=5000
 
 # API Keys (for real trading - optional)
-ALPACA_API_KEY=your_alpaca_api_key
+# ALPACA_API_KEY=your_alpaca_api_key  # Not needed for paper trading simulation
 ALPACA_SECRET_KEY=your_alpaca_secret_key
 COINBASE_API_KEY=your_coinbase_api_key
 COINBASE_SECRET=your_coinbase_secret

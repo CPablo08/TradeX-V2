@@ -37,8 +37,10 @@ class Executor {
   }
 
   async validateAPIConfiguration() {
+    // For paper trading, we use Coinbase prices for simulation, no API keys needed
+    // For real trading, we need Coinbase API keys
     const requiredKeys = this.tradingMode === 'paper' 
-      ? ['ALPACA_API_KEY', 'ALPACA_API_SECRET']
+      ? [] // No API keys needed for paper trading simulation
       : ['COINBASE_API_KEY', 'COINBASE_API_SECRET', 'COINBASE_PASSPHRASE'];
     
     for (const key of requiredKeys) {
@@ -269,20 +271,13 @@ class Executor {
 
   async loadAlpacaPositions() {
     try {
-      const baseUrl = process.env.ALPACA_BASE_URL || 'https://paper-api.alpaca.markets/v2';
-      
-      const headers = {
-        'APCA-API-KEY-ID': process.env.ALPACA_API_KEY,
-        'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET
-      };
-
-      const response = await axios.get(`${baseUrl}/positions`, { headers });
-      
-      this.logger.info('Alpaca positions loaded:', response.data.length);
-      return response.data;
+      // For paper trading simulation, we don't need real Alpaca API calls
+      // Return empty positions array for simulation
+      this.logger.info('Paper trading positions loaded (simulated)');
+      return [];
 
     } catch (error) {
-      this.logger.error('Failed to load Alpaca positions:', error);
+      this.logger.error('Failed to load paper trading positions:', error);
       return [];
     }
   }
@@ -316,32 +311,12 @@ class Executor {
 
   async closeAlpacaPositions() {
     try {
-      const baseUrl = process.env.ALPACA_BASE_URL || 'https://paper-api.alpaca.markets/v2';
-      
-      const headers = {
-        'APCA-API-KEY-ID': process.env.ALPACA_API_KEY,
-        'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET
-      };
-
-      const positions = await this.loadAlpacaPositions();
-      
-      for (const position of positions) {
-        if (parseFloat(position.qty) > 0) {
-          const orderData = {
-            symbol: position.symbol,
-            qty: position.qty,
-            side: 'sell',
-            type: 'market',
-            time_in_force: 'day'
-          };
-
-          await axios.post(`${baseUrl}/orders`, orderData, { headers });
-          this.logger.info(`Closed position for ${position.symbol}`);
-        }
-      }
+      // For paper trading simulation, we don't need real Alpaca API calls
+      // Just log that positions would be closed
+      this.logger.info('Paper trading positions closed (simulated)');
 
     } catch (error) {
-      this.logger.error('Failed to close Alpaca positions:', error);
+      this.logger.error('Failed to close paper trading positions:', error);
       throw error;
     }
   }
@@ -400,15 +375,8 @@ class Executor {
   async getActiveOrders() {
     try {
       if (this.tradingMode === 'paper') {
-        const baseUrl = process.env.ALPACA_BASE_URL || 'https://paper-api.alpaca.markets/v2';
-        
-        const headers = {
-          'APCA-API-KEY-ID': process.env.ALPACA_API_KEY,
-          'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET
-        };
-
-        const response = await axios.get(`${baseUrl}/orders?status=open`, { headers });
-        return response.data;
+        // For paper trading simulation, return empty orders array
+        return [];
       } else {
         return []; // Simplified for Coinbase
       }
