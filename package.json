@@ -12,7 +12,9 @@
     "setup": "mkdir -p data logs && echo 'Directories created successfully'",
     "clean": "rm -rf data/* logs/* && echo 'Data and logs cleared'",
     "logs": "tail -f logs/tradex.log",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "start:all": "./start.sh",
+    "stop:all": "./stop.sh"
   },
   "keywords": [
     "trading",

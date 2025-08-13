@@ -65,8 +65,25 @@ mkdir -p data logs
 
 ## 🚀 Running the Application
 
-### Development Mode
+### 🚀 **Quick Start (Recommended)**
+```bash
+# Start everything with one command
+./start.sh
+```
 
+This will:
+- ✅ Start the backend server (port 5000)
+- ✅ Start the frontend server (port 3000)
+- ✅ Open the dashboard automatically in your browser
+- ✅ Show live logs in the terminal
+
+### 🛑 **Stop the Application**
+```bash
+# Stop everything with one command
+./stop.sh
+```
+
+### 📋 **Manual Start (Alternative)**
 1. **Start the Backend Server**:
 ```bash
 npm start
