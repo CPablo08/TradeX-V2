@@ -33,14 +33,17 @@ router.get('/status', async (req, res) => {
 // Get trading status
 router.get('/trading-status', async (req, res) => {
   try {
-    const isActive = req.app.locals.isTradingActive || false;
-    const tradingMode = process.env.TRADING_MODE || 'paper';
+    const getTradingStatus = req.app.locals.getTradingStatus;
+    if (!getTradingStatus) {
+      return res.status(500).json({ success: false, error: 'Trading system not initialized' });
+    }
     
+    const status = getTradingStatus();
     res.json({
       success: true,
       data: {
-        isActive,
-        tradingMode,
+        isActive: status.isActive,
+        tradingMode: status.mode,
         timestamp: new Date().toISOString()
       }
     });
@@ -52,9 +55,13 @@ router.get('/trading-status', async (req, res) => {
 // Start trading
 router.post('/start-trading', async (req, res) => {
   try {
-    req.app.locals.isTradingActive = true;
-    console.log('Trading system started');
-    res.json({ success: true, message: 'Trading system started successfully', timestamp: new Date().toISOString() });
+    const startTrading = req.app.locals.startTrading;
+    if (!startTrading) {
+      return res.status(500).json({ success: false, error: 'Trading system not initialized' });
+    }
+    
+    const result = startTrading();
+    res.json({ success: result.success, message: result.message, timestamp: new Date().toISOString() });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -63,9 +70,13 @@ router.post('/start-trading', async (req, res) => {
 // Stop trading
 router.post('/stop-trading', async (req, res) => {
   try {
-    req.app.locals.isTradingActive = false;
-    console.log('Trading system stopped');
-    res.json({ success: true, message: 'Trading system stopped successfully', timestamp: new Date().toISOString() });
+    const stopTrading = req.app.locals.stopTrading;
+    if (!stopTrading) {
+      return res.status(500).json({ success: false, error: 'Trading system not initialized' });
+    }
+    
+    const result = stopTrading();
+    res.json({ success: result.success, message: result.message, timestamp: new Date().toISOString() });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
