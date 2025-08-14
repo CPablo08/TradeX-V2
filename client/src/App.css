@@ -31,12 +31,14 @@ body {
 
 .logo {
   text-align: center;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 
 .logo img {
-  height: 80px;
+  height: 100px;
   width: auto;
+  object-fit: contain;
+  object-position: center;
 }
 
 .nav-section {
@@ -747,8 +749,15 @@ input:checked + .slider:before {
   padding: 10px;
   max-height: 120px;
   overflow-y: auto;
+  overflow-x: hidden;
   width: 300px;
   flex-shrink: 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.notifications-panel::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .notifications-panel h3 {
@@ -763,6 +772,7 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 0;
 }
 
 .notification {
@@ -776,6 +786,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .notification-icon {
@@ -821,22 +832,22 @@ input:checked + .slider:before {
 
 @keyframes slideIn {
   from {
-    transform: translateX(100%);
+    transform: translateY(-10px);
     opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 
 @keyframes slideOut {
   from {
-    transform: translateX(0);
+    transform: translateY(0);
     opacity: 1;
   }
   to {
-    transform: translateX(100%);
+    transform: translateY(-10px);
     opacity: 0;
   }
 }
