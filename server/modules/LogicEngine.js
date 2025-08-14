@@ -231,56 +231,81 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
     }
   }
 
+  async getCurrentPosition(symbol) {
+    try {
+      const db = this.db;
+      const allTrades = await db.getTradeHistory(1000);
+      
+      let netQuantity = 0;
+      allTrades.forEach(trade => {
+        if (trade.symbol === symbol) {
+          if (trade.action === 'BUY') {
+            netQuantity += trade.quantity || 0;
+          } else if (trade.action === 'SELL') {
+            netQuantity -= trade.quantity || 0;
+          }
+        }
+      });
+      
+      return netQuantity;
+    } catch (error) {
+      this.logger.error(`Error getting current position for ${symbol}:`, error);
+      return 0;
+    }
+  }
+
   async evaluateStrategy(symbol) {
     try {
       const strategy = this.strategies[symbol];
       if (!strategy) {
         return {
-          symbol: symbol,
           action: 'HOLD',
           reason: 'No strategy configured',
-          confidence: 0,
-          timestamp: new Date()
+          timestamp: new Date(),
+          confidence: 0
         };
       }
 
-      // Get historical data for analysis
-      const historicalData = await this.getHistoricalDataForAnalysis(symbol);
-      if (historicalData.length < 20) {
-        return {
-          symbol: symbol,
-          action: 'HOLD',
-          reason: 'Insufficient historical data',
-          confidence: 0,
-          timestamp: new Date()
-        };
-      }
-
-      // Calculate technical indicators
+      // Get current market data and indicators
+      const marketData = await this.getMarketData(symbol);
+      const historicalData = this.historicalData[symbol] || this.generateMockHistoricalData(symbol);
       const indicators = this.calculateIndicators(historicalData);
-      
+
       // Execute strategy logic
-      const result = this.executePineScriptLogic(strategy, indicators, {
-        price: historicalData[historicalData.length - 1].close
-      });
+      const decision = this.executePineScriptLogic(strategy, indicators, marketData);
+      
+      // Check current position before making trading decisions
+      const currentPosition = await this.getCurrentPosition(symbol);
+      
+      // Prevent selling more than we have (unless we want to allow short selling)
+      if (decision.action === 'SELL' && currentPosition <= 0) {
+        decision.action = 'HOLD';
+        decision.reason = `Cannot sell ${symbol} - no position to sell (current: ${currentPosition.toFixed(6)})`;
+        decision.confidence = 0;
+      }
+      
+      // Prevent buying if we already have a large position (optional risk management)
+      if (decision.action === 'BUY' && currentPosition > 0.01) {
+        decision.action = 'HOLD';
+        decision.reason = `Already have ${symbol} position (${currentPosition.toFixed(6)}) - waiting for better opportunity`;
+        decision.confidence = Math.max(decision.confidence - 20, 0);
+      }
 
       return {
+        ...decision,
         symbol: symbol,
-        action: result.action,
-        reason: result.reason,
-        confidence: result.confidence,
-        price: historicalData[historicalData.length - 1].close,
-        timestamp: new Date()
+        timestamp: new Date(),
+        currentPosition: currentPosition
       };
 
     } catch (error) {
       this.logger.error(`Error evaluating strategy for ${symbol}:`, error);
       return {
-        symbol: symbol,
         action: 'HOLD',
         reason: 'Strategy evaluation error',
-        confidence: 0,
-        timestamp: new Date()
+        symbol: symbol,
+        timestamp: new Date(),
+        confidence: 0
       };
     }
   }
