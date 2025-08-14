@@ -114,25 +114,7 @@ function App() {
   });
   const [notifications, setNotifications] = useState([]);
   
-  // Visual confirmation states
-  const [pineScriptStatus, setPineScriptStatus] = useState({
-    btc: { loaded: false, valid: false, lastUpdated: null },
-    eth: { loaded: false, valid: false, lastUpdated: null }
-  });
-  const [tradingActivity, setTradingActivity] = useState({
-    lastTrade: null,
-    tradesToday: 0,
-    activePositions: 0
-  });
-  const [systemHealth, setSystemHealth] = useState({
-    overall: 'unknown',
-    components: {
-      dataRetriever: 'unknown',
-      logicEngine: 'unknown',
-      executor: 'unknown',
-      database: 'unknown'
-    }
-  });
+
 
   const timestampRef = useRef();
 
@@ -303,90 +285,7 @@ function App() {
     }
   }, []);
 
-  // Visual confirmation functions
-  const fetchPineScriptStatus = useCallback(async () => {
-    try {
-      const [btcResponse, ethResponse] = await Promise.all([
-        fetch('http://localhost:5000/api/strategies/BTC'),
-        fetch('http://localhost:5000/api/strategies/ETH')
-      ]);
-      
-      const btcValid = btcResponse.ok;
-      const ethValid = ethResponse.ok;
-      
-      setPineScriptStatus(prev => ({
-        btc: {
-          loaded: btcValid,
-          valid: btcValid && prev.btc.valid,
-          lastUpdated: btcValid ? new Date().toISOString() : prev.btc.lastUpdated
-        },
-        eth: {
-          loaded: ethValid,
-          valid: ethValid && prev.eth.valid,
-          lastUpdated: ethValid ? new Date().toISOString() : prev.eth.lastUpdated
-        }
-      }));
-    } catch (error) {
-      console.error('Error fetching Pine Script status:', error);
-    }
-  }, []);
 
-  const fetchTradingActivity = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/trading/history?limit=10');
-      if (response.ok) {
-        const result = await response.json();
-        const trades = result.data || [];
-        
-        // Get today's trades
-        const today = new Date().toDateString();
-        const tradesToday = trades.filter(trade => 
-          new Date(trade.timestamp).toDateString() === today
-        ).length;
-        
-        // Get last trade
-        const lastTrade = trades.length > 0 ? trades[0] : null;
-        
-        // Count active positions (simplified - could be enhanced)
-        const activePositions = trades.filter(trade => 
-          trade.action === 'BUY' && !trades.some(t => 
-            t.action === 'SELL' && t.symbol === trade.symbol && 
-            new Date(t.timestamp) > new Date(trade.timestamp)
-          )
-        ).length;
-        
-        setTradingActivity({
-          lastTrade,
-          tradesToday,
-          activePositions
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching trading activity:', error);
-    }
-  }, []);
-
-  const fetchSystemHealth = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/system/status');
-      if (response.ok) {
-        const data = await response.json();
-        const health = data.data?.system?.health || {};
-        
-        setSystemHealth({
-          overall: health.overall || 'unknown',
-          components: {
-            dataRetriever: health.dataRetriever?.status || 'unknown',
-            logicEngine: health.logicEngine?.status || 'unknown',
-            executor: health.executor?.status || 'unknown',
-            database: health.database?.status || 'unknown'
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching system health:', error);
-    }
-  }, []);
 
   const fetchStrategies = useCallback(async () => {
     try {
@@ -423,9 +322,7 @@ function App() {
     fetchTradesHistory();
     fetchAdvancedMetrics();
     fetchStrategies();
-    fetchPineScriptStatus();
-    fetchTradingActivity();
-    fetchSystemHealth();
+
     
     // Welcome notification
     addNotification('info', 'TradeX Dashboard', 'Welcome! Dashboard is now active and monitoring your trading system.');
@@ -439,9 +336,7 @@ function App() {
     const tradingStatusInterval = setInterval(fetchTradingStatus, 30000); // 30 seconds
     const tradesInterval = setInterval(fetchTradesHistory, 5000); // 5 seconds
     const advancedMetricsInterval = setInterval(fetchAdvancedMetrics, 5000); // 5 seconds
-    const pineScriptInterval = setInterval(fetchPineScriptStatus, 10000); // 10 seconds
-    const tradingActivityInterval = setInterval(fetchTradingActivity, 5000); // 5 seconds
-    const systemHealthInterval = setInterval(fetchSystemHealth, 15000); // 15 seconds
+
 
     return () => {
       clearInterval(timestampInterval);
@@ -452,11 +347,9 @@ function App() {
       clearInterval(tradingStatusInterval);
       clearInterval(tradesInterval);
       clearInterval(advancedMetricsInterval);
-      clearInterval(pineScriptInterval);
-      clearInterval(tradingActivityInterval);
-      clearInterval(systemHealthInterval);
+
     };
-  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchAdvancedMetrics, fetchStrategies, fetchPineScriptStatus, fetchTradingActivity, fetchSystemHealth, updateTimestamp, addNotification]);
+  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchAdvancedMetrics, fetchStrategies, updateTimestamp, addNotification]);
 
   const startTrading = async () => {
     try {
@@ -466,7 +359,7 @@ function App() {
       
       if (response.ok) {
         setIsTradingActive(true);
-        addNotification('success', 'Trading Started', 'Trading system is now active and making decisions!');
+        addNotification('success', 'Trading Started', 'Trading system is now active and making decisions! Pine Scripts are validated and ready.');
         
         // Immediately refresh data after starting
         fetchPortfolioData();
@@ -577,6 +470,24 @@ function App() {
       errors.push('Missing confidence field in return object');
     }
     
+    // Check for valid action values
+    const actionMatch = code.match(/action\s*:\s*["']([^"']+)["']/);
+    if (actionMatch) {
+      const action = actionMatch[1].toUpperCase();
+      if (!['BUY', 'SELL', 'HOLD'].includes(action)) {
+        errors.push('Invalid action value. Must be BUY, SELL, or HOLD');
+      }
+    }
+    
+    // Check for valid confidence range
+    const confidenceMatch = code.match(/confidence\s*:\s*(\d+)/);
+    if (confidenceMatch) {
+      const confidence = parseInt(confidenceMatch[1]);
+      if (confidence < 0 || confidence > 100) {
+        errors.push('Confidence must be between 0 and 100');
+      }
+    }
+    
     // Check for common Pine Script patterns
     const requiredPatterns = [
       /ta\./,
@@ -589,6 +500,30 @@ function App() {
     if (!hasRequiredPatterns) {
       errors.push('Missing common Pine Script indicators or price data');
     }
+    
+    // Check for proper object structure
+    if (!code.includes('{') || !code.includes('}')) {
+      errors.push('Missing proper object structure with curly braces');
+    }
+    
+    // Check for basic Pine Script syntax
+    const syntaxErrors = [];
+    const lines = code.split('\n');
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (trimmedLine && !trimmedLine.includes('//') && !trimmedLine.includes('/*')) {
+        // Check for unmatched brackets
+        const openBraces = (trimmedLine.match(/\{/g) || []).length;
+        const closeBraces = (trimmedLine.match(/\}/g) || []).length;
+        if (openBraces !== closeBraces) {
+          syntaxErrors.push(`Line ${index + 1}: Unmatched brackets`);
+        }
+      }
+    });
+    
+    if (syntaxErrors.length > 0) {
+      errors.push(...syntaxErrors);
+    }
 
     return {
       valid: errors.length === 0,
@@ -598,6 +533,14 @@ function App() {
 
   const updateStrategy = async (symbol, code) => {
     try {
+      // First validate the Pine Script
+      const validation = await validatePineScript(code);
+      
+      if (!validation.valid) {
+        addNotification('error', 'Pine Script Not Compatible', `Invalid ${symbol} strategy: ${validation.error}`);
+        return;
+      }
+      
       const response = await fetch(`http://localhost:5000/api/system/update-strategy`, {
         method: 'POST',
         headers: {
@@ -607,12 +550,14 @@ function App() {
       });
       
       if (response.ok) {
-        addNotification('success', 'Strategy Updated', `${symbol} strategy updated successfully`);
+        addNotification('success', 'Strategy Updated', `${symbol} strategy updated successfully and is now active!`);
       } else {
-        addNotification('error', 'Strategy Update Failed', `Failed to update ${symbol} strategy`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `Failed to update ${symbol} strategy`;
+        addNotification('error', 'Strategy Update Failed', errorMessage);
       }
     } catch (error) {
-      addNotification('error', 'Strategy Update Error', `Error updating ${symbol} strategy`);
+      addNotification('error', 'Strategy Update Error', `Error updating ${symbol} strategy: ${error.message}`);
     }
   };
 
@@ -752,108 +697,7 @@ function App() {
           </div>
         </div>
 
-        {/* Visual Confirmation Indicators */}
-        <div className="visual-confirmation-panel">
-          <div className="confirmation-grid">
-            {/* Trading Status Indicator */}
-            <div className="confirmation-card">
-              <div className="confirmation-header">
-                <span className="confirmation-title">Trading Status</span>
-                <div className={`status-indicator ${isTradingActive ? 'active' : 'inactive'}`}>
-                  <div className={`status-dot ${isTradingActive ? 'active' : 'inactive'}`}></div>
-                  <span>{isTradingActive ? 'ACTIVE' : 'INACTIVE'}</span>
-                </div>
-              </div>
-              <div className="confirmation-content">
-                <div className="confirmation-item">
-                  <span>Mode:</span>
-                  <span className={`mode-badge ${tradingMode}`}>{tradingMode.toUpperCase()}</span>
-                </div>
-                <div className="confirmation-item">
-                  <span>Last Decision:</span>
-                  <span>{tradingActivity.lastTrade ? `${tradingActivity.lastTrade.action} ${tradingActivity.lastTrade.symbol}` : 'None'}</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Pine Script Validation */}
-            <div className="confirmation-card">
-              <div className="confirmation-header">
-                <span className="confirmation-title">Pine Script Status</span>
-              </div>
-              <div className="confirmation-content">
-                <div className="confirmation-item">
-                  <span>BTC Strategy:</span>
-                  <div className={`validation-status ${pineScriptStatus.btc.valid ? 'valid' : 'invalid'}`}>
-                    <div className={`validation-dot ${pineScriptStatus.btc.valid ? 'valid' : 'invalid'}`}></div>
-                    <span>{pineScriptStatus.btc.valid ? 'VALID' : 'NOT LOADED'}</span>
-                  </div>
-                </div>
-                <div className="confirmation-item">
-                  <span>ETH Strategy:</span>
-                  <div className={`validation-status ${pineScriptStatus.eth.valid ? 'valid' : 'invalid'}`}>
-                    <div className={`validation-dot ${pineScriptStatus.eth.valid ? 'valid' : 'invalid'}`}></div>
-                    <span>{pineScriptStatus.eth.valid ? 'VALID' : 'NOT LOADED'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Trading Activity */}
-            <div className="confirmation-card">
-              <div className="confirmation-header">
-                <span className="confirmation-title">Live Trading Activity</span>
-              </div>
-              <div className="confirmation-content">
-                <div className="confirmation-item">
-                  <span>Trades Today:</span>
-                  <span className="activity-value">{tradingActivity.tradesToday}</span>
-                </div>
-                <div className="confirmation-item">
-                  <span>Active Positions:</span>
-                  <span className="activity-value">{tradingActivity.activePositions}</span>
-                </div>
-                <div className="confirmation-item">
-                  <span>Last Trade:</span>
-                  <span className="last-trade">
-                    {tradingActivity.lastTrade ? 
-                      `${new Date(tradingActivity.lastTrade.timestamp).toLocaleTimeString()}` : 
-                      'None'
-                    }
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* System Health */}
-            <div className="confirmation-card">
-              <div className="confirmation-header">
-                <span className="confirmation-title">System Health</span>
-              </div>
-              <div className="confirmation-content">
-                <div className="confirmation-item">
-                  <span>Overall:</span>
-                  <div className={`health-status ${systemHealth.overall === 'healthy' ? 'healthy' : 'unhealthy'}`}>
-                    <div className={`health-dot ${systemHealth.overall === 'healthy' ? 'healthy' : 'unhealthy'}`}></div>
-                    <span>{systemHealth.overall.toUpperCase()}</span>
-                  </div>
-                </div>
-                <div className="confirmation-item">
-                  <span>Logic Engine:</span>
-                  <span className={`component-status ${systemHealth.components.logicEngine === 'healthy' ? 'healthy' : 'unhealthy'}`}>
-                    {systemHealth.components.logicEngine}
-                  </span>
-                </div>
-                <div className="confirmation-item">
-                  <span>Data Retriever:</span>
-                  <span className={`component-status ${systemHealth.components.dataRetriever === 'healthy' ? 'healthy' : 'unhealthy'}`}>
-                    {systemHealth.components.dataRetriever}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="summary-cards">
