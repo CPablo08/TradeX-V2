@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './AdvancedPineScriptEditor.css';
+import BacktestingEngine from './BacktestingEngine';
+import ChartPreview from './ChartPreview';
 
 const AdvancedPineScriptEditor = ({ 
   value, 
@@ -44,6 +46,9 @@ const AdvancedPineScriptEditor = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [showBacktest, setShowBacktest] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+  const [backtestResults, setBacktestResults] = useState(null);
 
   useEffect(() => {
     updateLineNumbers();
@@ -209,6 +214,20 @@ const AdvancedPineScriptEditor = ({
           <button className="toolbar-btn" onClick={clearCode} title="Clear">
             <span>🗑️</span>
           </button>
+          <button 
+            className="toolbar-btn" 
+            onClick={() => setShowBacktest(!showBacktest)} 
+            title="Toggle Backtesting"
+          >
+            <span>📊</span>
+          </button>
+          <button 
+            className="toolbar-btn" 
+            onClick={() => setShowChart(!showChart)} 
+            title="Toggle Chart Preview"
+          >
+            <span>📈</span>
+          </button>
         </div>
         
         <div className="toolbar-right">
@@ -300,6 +319,25 @@ const AdvancedPineScriptEditor = ({
           <span>Ctrl+S: Save</span>
         </div>
       </div>
+
+      {/* Backtesting Engine */}
+      {showBacktest && (
+        <BacktestingEngine
+          strategy={value}
+          symbol={symbol}
+          onResults={setBacktestResults}
+        />
+      )}
+
+      {/* Chart Preview */}
+      {showChart && (
+        <ChartPreview
+          data={backtestResults?.data || []}
+          trades={backtestResults?.trades || []}
+          strategy={value}
+          symbol={symbol}
+        />
+      )}
     </div>
   );
 };
