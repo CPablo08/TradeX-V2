@@ -38,11 +38,11 @@ function App() {
     
     const timestampInterval = setInterval(updateTimestamp, 1000);
     const statusInterval = setInterval(fetchSystemStatus, 10000);
-    const dataInterval = setInterval(fetchPortfolioData, 30000);
-    const assetsInterval = setInterval(fetchTotalAssets, 30000);
-    const logsInterval = setInterval(fetchTradingLogs, 5000);
-    const tradingStatusInterval = setInterval(fetchTradingStatus, 5000);
-    const tradesInterval = setInterval(fetchTradesHistory, 10000);
+    const dataInterval = setInterval(fetchPortfolioData, 3000);
+    const assetsInterval = setInterval(fetchTotalAssets, 5000);
+    const logsInterval = setInterval(fetchTradingLogs, 3000);
+    const tradingStatusInterval = setInterval(fetchTradingStatus, 3000);
+    const tradesInterval = setInterval(fetchTradesHistory, 5000);
     
     return () => {
       clearInterval(timestampInterval);
@@ -280,6 +280,12 @@ function App() {
         setIsTradingActive(true);
         setTradingStatus('✅ Trading system is now active and making decisions!');
         
+        // Immediately refresh data after starting
+        fetchPortfolioData();
+        fetchTotalAssets();
+        fetchTradesHistory();
+        fetchTradingLogs();
+        
         // Clear status after 5 seconds
         setTimeout(() => {
           setTradingStatus('');
@@ -311,6 +317,12 @@ function App() {
       if (response.ok) {
         setIsTradingActive(false);
         setTradingStatus('⏹️ Trading system stopped');
+        
+        // Immediately refresh data after stopping
+        fetchPortfolioData();
+        fetchTotalAssets();
+        fetchTradesHistory();
+        fetchTradingLogs();
         
         setTimeout(() => {
           setTradingStatus('');
