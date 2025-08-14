@@ -86,156 +86,157 @@ function App() {
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
-  useEffect(() => {
-    const updateTimestamp = () => {
-      if (timestampRef.current) {
-        timestampRef.current.textContent = new Date().toLocaleString();
-      }
-    };
+  // Fetch functions - moved outside useEffect for global access
+  const updateTimestamp = () => {
+    if (timestampRef.current) {
+      timestampRef.current.textContent = new Date().toLocaleString();
+    }
+  };
 
-    const fetchSystemStatus = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/system/status');
-        if (response.ok) {
-          const data = await response.json();
-          setSystemStatus(data.data);
-          setBackendStatus('🟢 Online');
-        } else {
-          setBackendStatus('🔴 Offline');
-        }
-      } catch (error) {
+  const fetchSystemStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/system/status');
+      if (response.ok) {
+        const data = await response.json();
+        setSystemStatus(data.data);
+        setBackendStatus('🟢 Online');
+      } else {
         setBackendStatus('🔴 Offline');
-        addNotification('error', 'Connection Error', 'Failed to connect to backend server');
       }
-    };
+    } catch (error) {
+      setBackendStatus('🔴 Offline');
+      addNotification('error', 'Connection Error', 'Failed to connect to backend server');
+    }
+  };
 
-    const fetchPortfolioData = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/data/portfolio-metrics');
-        if (response.ok) {
-          const data = await response.json();
-          setPortfolioData(data.data);
-        }
-      } catch (error) {
-        console.error('Error fetching portfolio data:', error);
-        addNotification('error', 'Data Error', 'Failed to fetch portfolio metrics');
+  const fetchPortfolioData = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/data/portfolio-metrics');
+      if (response.ok) {
+        const data = await response.json();
+        setPortfolioData(data.data);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching portfolio data:', error);
+      addNotification('error', 'Data Error', 'Failed to fetch portfolio metrics');
+    }
+  };
 
-    const fetchTotalAssets = async () => {
-      try {
-        const [btcResponse, ethResponse] = await Promise.all([
-          fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot'),
-          fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot')
-        ]);
+  const fetchTotalAssets = async () => {
+    try {
+      const [btcResponse, ethResponse] = await Promise.all([
+        fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot'),
+        fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot')
+      ]);
+      
+      if (btcResponse.ok && ethResponse.ok) {
+        const btcData = await btcResponse.json();
+        const ethData = await ethResponse.json();
         
-        if (btcResponse.ok && ethResponse.ok) {
-          const btcData = await btcResponse.json();
-          const ethData = await ethResponse.json();
+        const btcPrice = parseFloat(btcData.data.amount);
+        const ethPrice = parseFloat(ethData.data.amount);
+        
+        // Calculate total assets based on recent trades
+        const response = await fetch('http://localhost:5000/api/trading/history?limit=100');
+        if (response.ok) {
+          const tradesData = await response.json();
+          const trades = tradesData.data || [];
           
-          const btcPrice = parseFloat(btcData.data.amount);
-          const ethPrice = parseFloat(ethData.data.amount);
+          let btcQuantity = 0;
+          let ethQuantity = 0;
           
-          // Calculate total assets based on recent trades
-          const response = await fetch('http://localhost:5000/api/trading/history?limit=100');
-          if (response.ok) {
-            const tradesData = await response.json();
-            const trades = tradesData.data || [];
-            
-            let btcQuantity = 0;
-            let ethQuantity = 0;
-            
-            trades.forEach(trade => {
-              if (trade.symbol === 'BTC') {
-                if (trade.action === 'BUY') {
-                  btcQuantity += trade.quantity || 0;
-                } else if (trade.action === 'SELL') {
-                  btcQuantity -= trade.quantity || 0;
-                }
-              } else if (trade.symbol === 'ETH') {
-                if (trade.action === 'BUY') {
-                  ethQuantity += trade.quantity || 0;
-                } else if (trade.action === 'SELL') {
-                  ethQuantity -= trade.quantity || 0;
-                }
+          trades.forEach(trade => {
+            if (trade.symbol === 'BTC') {
+              if (trade.action === 'BUY') {
+                btcQuantity += trade.quantity || 0;
+              } else if (trade.action === 'SELL') {
+                btcQuantity -= trade.quantity || 0;
               }
-            });
-            
-            const btcValue = btcQuantity * btcPrice;
-            const ethValue = ethQuantity * ethPrice;
-            const totalValue = btcValue + ethValue;
-            
-            setTotalAssets({
-              btcValue: btcValue,
-              ethValue: ethValue,
-              totalValue: totalValue
-            });
+            } else if (trade.symbol === 'ETH') {
+              if (trade.action === 'BUY') {
+                ethQuantity += trade.quantity || 0;
+              } else if (trade.action === 'SELL') {
+                ethQuantity -= trade.quantity || 0;
+              }
+            }
+          });
+          
+          const btcValue = btcQuantity * btcPrice;
+          const ethValue = ethQuantity * ethPrice;
+          const totalValue = btcValue + ethValue;
+          
+          setTotalAssets({
+            btcValue: btcValue,
+            ethValue: ethValue,
+            totalValue: totalValue
+          });
 
-            // Update market data
-            setMarketData({
-              BTC: { price: btcPrice, change24h: 0 },
-              ETH: { price: ethPrice, change24h: 0 }
-            });
-            
-            // Add notification for successful API retrieval
-            addNotification('info', 'Market Data Updated', `BTC: $${btcPrice.toFixed(2)} | ETH: $${ethPrice.toFixed(2)}`);
-          }
+          // Update market data
+          setMarketData({
+            BTC: { price: btcPrice, change24h: 0 },
+            ETH: { price: ethPrice, change24h: 0 }
+          });
+          
+          // Add notification for successful API retrieval
+          addNotification('info', 'Market Data Updated', `BTC: $${btcPrice.toFixed(2)} | ETH: $${ethPrice.toFixed(2)}`);
         }
-      } catch (error) {
-        console.error('Error fetching total assets:', error);
-        addNotification('error', 'Market Data Error', 'Failed to fetch latest prices from Coinbase');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching total assets:', error);
+      addNotification('error', 'Market Data Error', 'Failed to fetch latest prices from Coinbase');
+    }
+  };
 
-    const fetchTradingLogs = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/system/trading-logs');
-        if (response.ok) {
-          const data = await response.json();
-          setTradingLogs(data.data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching trading logs:', error);
+  const fetchTradingLogs = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/system/trading-logs');
+      if (response.ok) {
+        const data = await response.json();
+        setTradingLogs(data.data || []);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching trading logs:', error);
+    }
+  };
 
-    const fetchTradingStatus = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/system/trading-status');
-        if (response.ok) {
-          const data = await response.json();
-          setTradingMode(data.tradingMode || 'paper');
-          setIsTradingActive(data.isActive || false);
-        }
-      } catch (error) {
-        console.error('Error fetching trading status:', error);
+  const fetchTradingStatus = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/system/trading-status');
+      if (response.ok) {
+        const data = await response.json();
+        setTradingMode(data.tradingMode || 'paper');
+        setIsTradingActive(data.isActive || false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching trading status:', error);
+    }
+  };
 
-    const fetchTradesHistory = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/trading/history?limit=50');
-        if (response.ok) {
-          const result = await response.json();
-          setTradesHistory(result.data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching trades history:', error);
+  const fetchTradesHistory = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/trading/history?limit=50');
+      if (response.ok) {
+        const result = await response.json();
+        setTradesHistory(result.data || []);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching trades history:', error);
+    }
+  };
 
-    const fetchAdvancedMetrics = async () => {
-      try {
-        const response = await fetch('http://localhost:5000/api/data/advanced-metrics');
-        if (response.ok) {
-          const data = await response.json();
-          setAdvancedMetrics(data.data || {});
-        }
-      } catch (error) {
-        console.error('Error fetching advanced metrics:', error);
+  const fetchAdvancedMetrics = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/data/advanced-metrics');
+      if (response.ok) {
+        const data = await response.json();
+        setAdvancedMetrics(data.data || {});
       }
-    };
+    } catch (error) {
+      console.error('Error fetching advanced metrics:', error);
+    }
+  };
 
+  useEffect(() => {
     // Initial fetch
     fetchSystemStatus();
     fetchPortfolioData();
