@@ -707,6 +707,16 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
       // Parse and execute custom Pine Script code
       // This is a simplified Pine Script interpreter
       
+      // Check if marketData is available
+      if (!marketData || !marketData.price) {
+        this.logger.warn('Market data not available for Pine Script execution');
+        return {
+          action: 'HOLD',
+          reason: 'Market data unavailable',
+          confidence: 0
+        };
+      }
+      
       const currentPrice = marketData.price;
       const closes = this.historicalData[marketData.symbol]?.map(d => d.close) || [currentPrice];
       const highs = this.historicalData[marketData.symbol]?.map(d => d.high) || [currentPrice];
