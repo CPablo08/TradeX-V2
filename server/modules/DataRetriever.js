@@ -246,6 +246,17 @@ class DataRetriever {
     return this.tradingMode;
   }
 
+  async fetchInitialData() {
+    try {
+      await this.fetchMarketData();
+      await this.fetchAccountData();
+      this.logger.info('Initial data fetched successfully');
+    } catch (error) {
+      this.logger.error('Failed to fetch initial data:', error);
+      throw error;
+    }
+  }
+
   // New method to get Coinbase-specific metrics
   async getCoinbaseMetrics() {
     try {

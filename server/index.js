@@ -113,7 +113,7 @@ async function initializeSystem() {
     logger.info('DataRetriever initialized');
     
     // Initialize LogicEngine
-    logicEngine = new LogicEngine(logger, db);
+    logicEngine = new LogicEngine(logger, db, dataRetriever);
     await logicEngine.initialize();
     logger.info('LogicEngine initialized');
     
