@@ -488,7 +488,27 @@ function App() {
         {/* Header */}
         <div className="header">
           <div className="header-left">
-            {/* Removed dashboard title and subtitle */}
+            {/* Program Updates Panel */}
+            <div className="notifications-panel">
+              <h3>Program Updates</h3>
+              <div className="notifications">
+                {notifications.length > 0 ? (
+                  notifications.map(notification => (
+                    <Notification
+                      key={notification.id}
+                      type={notification.type}
+                      title={notification.title}
+                      message={notification.message}
+                      onClose={() => removeNotification(notification.id)}
+                    />
+                  ))
+                ) : (
+                  <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', textAlign: 'center', padding: '10px' }}>
+                    No recent updates
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           <div className="header-right">
             <div className="timestamp">
@@ -506,28 +526,6 @@ function App() {
             {tradingStatus}
           </div>
         )}
-
-        {/* Program Updates Panel */}
-        <div className="notifications-panel">
-          <h3>Program Updates</h3>
-          <div className="notifications">
-            {notifications.length > 0 ? (
-              notifications.map(notification => (
-                <Notification
-                  key={notification.id}
-                  type={notification.type}
-                  title={notification.title}
-                  message={notification.message}
-                  onClose={() => removeNotification(notification.id)}
-                />
-              ))
-            ) : (
-              <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', textAlign: 'center', padding: '10px' }}>
-                No recent updates
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Summary Cards */}
         <div className="summary-cards">

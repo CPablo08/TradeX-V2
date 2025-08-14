@@ -132,13 +132,16 @@ body {
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding-bottom: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 20px;
 }
 
 .header-left {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .header-right {
@@ -743,16 +746,17 @@ input:checked + .slider:before {
   background-color: #1a1c23;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
-  max-height: 200px;
+  padding: 10px;
+  max-height: 120px;
   overflow-y: auto;
+  width: 300px;
+  flex-shrink: 0;
 }
 
 .notifications-panel h3 {
   color: white;
-  font-size: 16px;
-  margin-bottom: 10px;
+  font-size: 12px;
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
