@@ -320,5 +320,3 @@ class Executor {
 }
 
 module.exports = Executor;
-
-module.exports = Executor;

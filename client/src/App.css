@@ -20,8 +20,8 @@ body {
 /* Sidebar */
 .sidebar {
   width: 280px;
-  background-color: #2A2D31;
-  border-right: 1px solid #3A3D41;
+  background-color: #1A1C1F;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -35,13 +35,13 @@ body {
 }
 
 .logo img {
-  height: 60px;
+  height: 100px;
   width: auto;
 }
 
 .nav-section {
   background-color: #1A1C1F;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 15px;
 }
@@ -49,7 +49,7 @@ body {
 .nav-section h3 {
   font-size: 14px;
   margin-bottom: 10px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -68,10 +68,11 @@ body {
 
 .status-value {
   font-weight: bold;
+  color: #00ff88;
 }
 
 .price {
-  color: #00D4AA;
+  color: #00ff88;
   font-weight: bold;
 }
 
@@ -81,15 +82,15 @@ body {
 }
 
 .regime.bull {
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .regime.bear {
-  color: #FF6B6B;
+  color: #ff4757;
 }
 
 .regime.sideways {
-  color: #FFD93D;
+  color: #ffa500;
 }
 
 .risk {
@@ -97,15 +98,15 @@ body {
 }
 
 .risk.low {
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .risk.medium {
-  color: #FFD93D;
+  color: #ffa500;
 }
 
 .risk.high {
-  color: #FF6B6B;
+  color: #ff4757;
 }
 
 /* Main Content */
@@ -124,17 +125,17 @@ body {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 20px;
-  border-bottom: 1px solid #3A3D41;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-left h1 {
   font-size: 28px;
   margin-bottom: 5px;
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .header-left p {
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
 }
 
@@ -146,11 +147,11 @@ body {
 
 .timestamp {
   font-size: 12px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .config-btn {
-  background-color: #00D4AA;
+  background-color: #00ff88;
   color: #1A1C1F;
   border: none;
   padding: 10px 20px;
@@ -162,13 +163,13 @@ body {
 }
 
 .config-btn:hover {
-  background-color: #00B894;
+  background-color: #00cc6a;
 }
 
 /* Trading Status */
 .trading-status {
-  background-color: #2A2D31;
-  border: 1px solid #3A3D41;
+  background-color: #1A1C1F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 15px;
   text-align: center;
@@ -192,8 +193,8 @@ body {
 }
 
 .card {
-  background-color: #2A2D31;
-  border: 1px solid #3A3D41;
+  background-color: #1A1C1F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
@@ -202,12 +203,12 @@ body {
 
 .card:hover {
   transform: translateY(-2px);
-  border-color: #00D4AA;
+  border-color: #00ff88;
 }
 
 .card-header {
   font-size: 14px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -220,22 +221,22 @@ body {
 }
 
 .card-value.positive {
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .card-value.negative {
-  color: #FF6B6B;
+  color: #ff4757;
 }
 
 .card-subtitle {
   font-size: 12px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Advanced Performance Metrics */
 .advanced-metrics {
-  background-color: #2A2D31;
-  border: 1px solid #3A3D41;
+  background-color: #1A1C1F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
 }
@@ -243,7 +244,7 @@ body {
 .advanced-metrics h3 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .metrics-grid {
@@ -254,7 +255,7 @@ body {
 
 .metric-card {
   background-color: #1A1C1F;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 15px;
   text-align: center;
@@ -262,7 +263,7 @@ body {
 
 .metric-label {
   font-size: 12px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -274,17 +275,17 @@ body {
 }
 
 .metric-value.positive {
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .metric-value.negative {
-  color: #FF6B6B;
+  color: #ff4757;
 }
 
 /* Charts Section */
 .charts-section {
-  background-color: #2A2D31;
-  border: 1px solid #3A3D41;
+  background-color: #1A1C1F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
   flex: 1;
@@ -294,7 +295,7 @@ body {
 .charts-section h3 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .charts-container {
@@ -305,7 +306,7 @@ body {
 
 .chart-widget {
   flex: 1;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -326,7 +327,7 @@ body {
 
 .config-panel {
   background-color: #1A1C1F;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   width: 90%;
   max-width: 1200px;
@@ -342,19 +343,19 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid #3A3D41;
-  background-color: #2A2D31;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #1A1C1F;
 }
 
 .config-header h2 {
-  color: #00D4AA;
+  color: #00ff88;
   font-size: 24px;
 }
 
 .close-btn {
   background: none;
   border: none;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 24px;
   cursor: pointer;
   padding: 5px;
@@ -363,7 +364,7 @@ body {
 }
 
 .close-btn:hover {
-  color: #FF6B6B;
+  color: #ff4757;
 }
 
 .config-content {
@@ -376,14 +377,14 @@ body {
 }
 
 .config-section {
-  background-color: #2A2D31;
-  border: 1px solid #3A3D41;
+  background-color: #1A1C1F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
 }
 
 .config-section h3 {
-  color: #00D4AA;
+  color: #00ff88;
   margin-bottom: 15px;
   font-size: 18px;
 }
@@ -423,7 +424,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #3A3D41;
+  background-color: rgba(255, 255, 255, 0.2);
   transition: 0.4s;
   border-radius: 34px;
 }
@@ -441,7 +442,7 @@ body {
 }
 
 input:checked + .slider {
-  background-color: #00D4AA;
+  background-color: #00ff88;
 }
 
 input:checked + .slider:before {
@@ -451,7 +452,7 @@ input:checked + .slider:before {
 .mode-status {
   text-align: center;
   font-size: 14px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Trading Controls */
@@ -473,36 +474,36 @@ input:checked + .slider:before {
 }
 
 .control-btn.start {
-  background-color: #00D4AA;
+  background-color: #00ff88;
   color: #1A1C1F;
 }
 
 .control-btn.start:hover {
-  background-color: #00B894;
+  background-color: #00cc6a;
 }
 
 .control-btn.stop {
-  background-color: #FF6B6B;
+  background-color: #ff4757;
   color: white;
 }
 
 .control-btn.stop:hover {
-  background-color: #FF5252;
+  background-color: #ff3742;
 }
 
 .control-btn.restart {
-  background-color: #FFD93D;
+  background-color: #ffa500;
   color: #1A1C1F;
 }
 
 .control-btn.restart:hover {
-  background-color: #FFC107;
+  background-color: #ff8c00;
 }
 
 .trading-status-display {
   text-align: center;
   font-size: 14px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Strategy Editors */
@@ -519,14 +520,14 @@ input:checked + .slider:before {
 }
 
 .strategy-editor h4 {
-  color: #00D4AA;
+  color: #00ff88;
   font-size: 16px;
 }
 
 .strategy-editor textarea {
   height: 200px;
   background-color: #1A1C1F;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 15px;
   color: white;
@@ -537,11 +538,11 @@ input:checked + .slider:before {
 
 .strategy-editor textarea:focus {
   outline: none;
-  border-color: #00D4AA;
+  border-color: #00ff88;
 }
 
 .strategy-editor button {
-  background-color: #00D4AA;
+  background-color: #00ff88;
   color: #1A1C1F;
   border: none;
   padding: 10px;
@@ -553,7 +554,7 @@ input:checked + .slider:before {
 }
 
 .strategy-editor button:hover {
-  background-color: #00B894;
+  background-color: #00cc6a;
 }
 
 .strategy-status {
@@ -568,7 +569,7 @@ input:checked + .slider:before {
 .trades-container {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background-color: #1A1C1F;
 }
@@ -578,7 +579,7 @@ input:checked + .slider:before {
   grid-template-columns: 1fr 80px 60px 80px 100px 80px;
   gap: 10px;
   padding: 12px 15px;
-  border-bottom: 1px solid #3A3D41;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 12px;
   align-items: center;
 }
@@ -588,7 +589,7 @@ input:checked + .slider:before {
 }
 
 .trade-time {
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .trade-action {
@@ -600,18 +601,18 @@ input:checked + .slider:before {
 }
 
 .trade-action.buy {
-  background-color: #00D4AA;
+  background-color: #00ff88;
   color: #1A1C1F;
 }
 
 .trade-action.sell {
-  background-color: #FF6B6B;
+  background-color: #ff4757;
   color: white;
 }
 
 .trade-symbol {
   font-weight: bold;
-  color: #00D4AA;
+  color: #00ff88;
 }
 
 .trade-quantity {
@@ -620,26 +621,26 @@ input:checked + .slider:before {
 
 .trade-price {
   text-align: right;
-  color: #FFD93D;
+  color: #ffa500;
 }
 
 .trade-status {
   text-align: center;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 11px;
 }
 
 .no-trades {
   text-align: center;
   padding: 40px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Trading Logs */
 .logs-container {
   max-height: 300px;
   overflow-y: auto;
-  border: 1px solid #3A3D41;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background-color: #1A1C1F;
 }
@@ -649,7 +650,7 @@ input:checked + .slider:before {
   grid-template-columns: 1fr 80px 1fr;
   gap: 15px;
   padding: 10px 15px;
-  border-bottom: 1px solid #3A3D41;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 12px;
   align-items: center;
 }
@@ -659,7 +660,7 @@ input:checked + .slider:before {
 }
 
 .log-time {
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .log-level {
@@ -672,29 +673,29 @@ input:checked + .slider:before {
 }
 
 .log-level.info {
-  background-color: #00D4AA;
+  background-color: #00ff88;
   color: #1A1C1F;
 }
 
 .log-level.warn {
-  background-color: #FFD93D;
+  background-color: #ffa500;
   color: #1A1C1F;
 }
 
 .log-level.error {
-  background-color: #FF6B6B;
+  background-color: #ff4757;
   color: white;
 }
 
 .log-message {
-  color: #E0E0E0;
+  color: rgba(255, 255, 255, 0.9);
   word-break: break-word;
 }
 
 .no-logs {
   text-align: center;
   padding: 40px;
-  color: #8A8D91;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Responsive Design */

@@ -198,14 +198,14 @@ function App() {
     fetchTradesHistory();
     fetchAdvancedMetrics();
 
-    // Set up intervals for real-time updates (1 second for critical data)
+    // Set up intervals for real-time updates (5 seconds for all data)
     const timestampInterval = setInterval(updateTimestamp, 1000);
     const statusInterval = setInterval(fetchSystemStatus, 10000);
-    const dataInterval = setInterval(fetchPortfolioData, 1000); // 1 second
-    const assetsInterval = setInterval(fetchTotalAssets, 1000); // 1 second
-    const logsInterval = setInterval(fetchTradingLogs, 1000); // 1 second
-    const tradingStatusInterval = setInterval(fetchTradingStatus, 1000); // 1 second
-    const tradesInterval = setInterval(fetchTradesHistory, 1000); // 1 second
+    const dataInterval = setInterval(fetchPortfolioData, 5000); // 5 seconds
+    const assetsInterval = setInterval(fetchTotalAssets, 5000); // 5 seconds
+    const logsInterval = setInterval(fetchTradingLogs, 5000); // 5 seconds
+    const tradingStatusInterval = setInterval(fetchTradingStatus, 5000); // 5 seconds
+    const tradesInterval = setInterval(fetchTradesHistory, 5000); // 5 seconds
     const advancedMetricsInterval = setInterval(fetchAdvancedMetrics, 5000); // 5 seconds
 
     return () => {
