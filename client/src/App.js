@@ -470,8 +470,7 @@ function App() {
         {/* Header */}
         <div className="header">
           <div className="header-left">
-            <h1>TradeX Dashboard</h1>
-            <p>Advanced Cryptocurrency Trading Bot</p>
+            {/* Removed dashboard title and subtitle */}
           </div>
           <div className="header-right">
             <div className="timestamp">
@@ -562,7 +561,6 @@ function App() {
 
         {/* TradingView Charts */}
         <div className="charts-section">
-          <h3>Live Market Charts</h3>
           <div className="charts-grid">
             <div className="chart-panel">
               <h4>BTC/USD Chart</h4>
