@@ -128,7 +128,7 @@ class Watchdog {
     const freeMem = os.freemem();
     const usedMem = totalMem - freeMem;
     const usage = usedMem / totalMem;
-    const threshold = parseFloat(process.env.MEMORY_THRESHOLD) || 0.8;
+    const threshold = parseFloat(process.env.MEMORY_THRESHOLD) || 0.95; // Increased threshold to 95%
     
     return {
       total: totalMem,
@@ -366,11 +366,41 @@ class Watchdog {
   async handleHighMemoryUsage() {
     this.logger.warn('High memory usage detected, attempting garbage collection');
     
-    if (global.gc) {
-      global.gc();
-      this.logger.info('Garbage collection completed');
-    } else {
-      this.logger.warn('Garbage collection not available');
+    try {
+      if (global.gc) {
+        global.gc();
+        this.logger.info('Garbage collection completed');
+      } else {
+        this.logger.warn('Garbage collection not available');
+      }
+      
+      // Force memory cleanup
+      await this.performMemoryCleanup();
+      
+    } catch (error) {
+      this.logger.error('Memory cleanup failed:', error);
+    }
+  }
+
+  async performMemoryCleanup() {
+    try {
+      // Clear any cached data in components
+      if (this.components.dataRetriever && this.components.dataRetriever.clearCache) {
+        this.components.dataRetriever.clearCache();
+      }
+      
+      if (this.components.logicEngine && this.components.logicEngine.clearCache) {
+        this.components.logicEngine.clearCache();
+      }
+      
+      // Force Node.js to free memory
+      if (global.gc) {
+        global.gc();
+      }
+      
+      this.logger.info('Memory cleanup completed');
+    } catch (error) {
+      this.logger.error('Memory cleanup failed:', error);
     }
   }
 

@@ -55,6 +55,7 @@ let tradingTasks = {
   healthCheck: null
 };
 let isTradingActive = false;
+let systemInitialized = false;
 
 // Middleware
 app.use(helmet());
@@ -141,7 +142,9 @@ async function initializeSystem() {
     app.locals.startTrading = startTrading;
     app.locals.stopTrading = stopTrading;
     app.locals.getTradingStatus = getTradingStatus;
+    app.locals.getSystemStatus = getSystemStatus;
     
+    systemInitialized = true;
     logger.info('TradeX system initialized successfully');
     
   } catch (error) {
@@ -214,6 +217,22 @@ function getTradingStatus() {
   return {
     isActive: isTradingActive,
     mode: process.env.TRADING_MODE || 'paper'
+  };
+}
+
+function getSystemStatus() {
+  return {
+    initialized: systemInitialized,
+    components: {
+      database: !!db,
+      dataRetriever: !!dataRetriever,
+      logicEngine: !!logicEngine,
+      executor: !!executor,
+      watchdog: !!watchdog
+    },
+    tradingActive: isTradingActive,
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
   };
 }
 

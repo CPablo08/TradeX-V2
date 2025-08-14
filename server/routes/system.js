@@ -6,11 +6,18 @@ const path = require('path');
 // Get system status
 router.get('/status', async (req, res) => {
   try {
+    const getSystemStatus = req.app.locals.getSystemStatus;
+    if (!getSystemStatus) {
+      return res.status(500).json({ success: false, error: 'System not initialized' });
+    }
+    
+    const systemStatus = getSystemStatus();
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
     
     const status = {
+      system: systemStatus,
       uptime: Math.floor(uptime),
       memory: {
         used: Math.round(memoryUsage.heapUsed / 1024 / 1024),
@@ -93,6 +100,29 @@ router.post('/trading-mode', async (req, res) => {
     process.env.TRADING_MODE = mode;
     console.log(`Trading mode changed to: ${mode}`);
     res.json({ success: true, message: `Trading mode changed to ${mode}`, timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Restart system components
+router.post('/restart-components', async (req, res) => {
+  try {
+    const { components } = req.body;
+    
+    if (components && components.includes('dataRetriever') && req.app.locals.dataRetriever) {
+      await req.app.locals.dataRetriever.initialize();
+    }
+    
+    if (components && components.includes('logicEngine') && req.app.locals.logicEngine) {
+      await req.app.locals.logicEngine.initialize();
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Components restarted successfully', 
+      timestamp: new Date().toISOString() 
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

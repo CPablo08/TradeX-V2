@@ -969,6 +969,16 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
     }
   }
 
+  clearCache() {
+    try {
+      this.historicalData = {};
+      this.signalHistory = [];
+      this.logger.info('LogicEngine cache cleared');
+    } catch (error) {
+      this.logger.error('Failed to clear LogicEngine cache:', error);
+    }
+  }
+
   async updateHistoricalData(symbol, data) {
     this.historicalData[symbol] = data;
   }

@@ -256,6 +256,17 @@ class DataRetriever {
     return this.tradingMode;
   }
 
+  clearCache() {
+    try {
+      this.marketData = {};
+      this.accountData = {};
+      this.lastUpdate = new Date();
+      this.logger.info('DataRetriever cache cleared');
+    } catch (error) {
+      this.logger.error('Failed to clear DataRetriever cache:', error);
+    }
+  }
+
   async fetchInitialData() {
     try {
       await this.fetchMarketData();
