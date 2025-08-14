@@ -29,100 +29,50 @@ const Notification = ({ type, title, message, onClose }) => {
 };
 
 function App() {
-  // Add comprehensive error suppression
+  // Temporarily disable error suppression to debug white screen
   useEffect(() => {
-    // Disable React error overlay completely
-    if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-      window.__REACT_DEVTOOLS_GLOBAL_HOOK__.suppressErrors = true;
-    }
+    console.log('App component mounted - checking for errors...');
     
-    // Override React's error overlay
+    // Keep basic error handling but allow errors to show
     const originalError = console.error;
     const originalWarn = console.warn;
     
-    // Completely suppress all console errors and warnings
     console.error = function(...args) {
       const message = args.join(' ');
-      // Only allow critical errors through
-      if (message.includes('Critical') || message.includes('Fatal')) {
-        originalError.apply(console, args);
-      }
-      // Suppress everything else
+      console.log('ERROR CAUGHT:', message);
+      originalError.apply(console, args);
     };
     
     console.warn = function(...args) {
-      // Suppress all warnings
+      const message = args.join(' ');
+      console.log('WARNING CAUGHT:', message);
+      originalWarn.apply(console, args);
     };
 
-    // Suppress window errors
+    // Allow window errors to show
     const originalErrorHandler = window.onerror;
     window.onerror = function(msg, url, line, col, error) {
-      // Suppress all script errors
-      return true;
+      console.log('WINDOW ERROR:', msg, url, line, col);
+      if (originalErrorHandler) {
+        return originalErrorHandler(msg, url, line, col, error);
+      }
+      return false;
     };
 
-    // Suppress unhandled promise rejections
+    // Allow unhandled promise rejections to show
     const originalUnhandledRejection = window.onunhandledrejection;
     window.onunhandledrejection = function(event) {
-      event.preventDefault();
-      return;
-    };
-
-    // Disable React's error boundary overlay
-    if (window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__) {
-      window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.dismissBuildError = () => {};
-      window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.reportBuildError = () => {};
-    }
-
-    // Remove any existing error overlays
-    const errorOverlays = document.querySelectorAll('[data-react-error-overlay]');
-    errorOverlays.forEach(overlay => overlay.remove());
-
-    // Remove any existing error banners
-    const errorBanners = document.querySelectorAll('[class*="error"], [class*="Error"]');
-    errorBanners.forEach(banner => {
-      if (banner.textContent.includes('Script error') || 
-          banner.textContent.includes('Uncaught runtime errors')) {
-        banner.remove();
+      console.log('UNHANDLED REJECTION:', event.reason);
+      if (originalUnhandledRejection) {
+        originalUnhandledRejection(event);
       }
-    });
-
-    // Set up continuous error removal
-    const removeErrors = () => {
-      // Remove React error overlays
-      const overlays = document.querySelectorAll('div[style*="position: fixed"][style*="top: 0"]');
-      overlays.forEach(overlay => {
-        if (overlay.textContent.includes('Script error') || 
-            overlay.textContent.includes('Uncaught runtime errors') ||
-            overlay.textContent.includes('ERROR')) {
-          overlay.remove();
-        }
-      });
-      
-      // Remove error banners
-      const banners = document.querySelectorAll('div[style*="background-color: rgb(206, 17, 38)"]');
-      banners.forEach(banner => banner.remove());
-      
-      // Remove any divs with error content
-      const errorDivs = document.querySelectorAll('div');
-      errorDivs.forEach(div => {
-        if (div.textContent.includes('Script error') && 
-            div.style.position === 'fixed' && 
-            div.style.top === '0px') {
-          div.remove();
-        }
-      });
     };
-
-    // Run error removal continuously
-    const errorRemovalInterval = setInterval(removeErrors, 50);
 
     return () => {
       console.error = originalError;
       console.warn = originalWarn;
       window.onerror = originalErrorHandler;
       window.onunhandledrejection = originalUnhandledRejection;
-      clearInterval(errorRemovalInterval);
     };
   }, []);
 
