@@ -32,41 +32,144 @@ class LogicEngine {
 
   async loadDefaultStrategies() {
     try {
-      // Create default moving average crossover strategy
-      const defaultStrategy = {
-        name: 'MA Crossover Strategy',
+      // Advanced BTC Strategy: Multi-Timeframe RSI + MACD + Volume
+      const btcStrategy = {
+        name: 'BTC Advanced Momentum Strategy',
         code: `
-// Simple Moving Average Crossover Strategy
-// Buy when fast MA crosses above slow MA
-// Sell when fast MA crosses below slow MA
+// Advanced BTC Strategy: Multi-Timeframe RSI + MACD + Volume Analysis
+// Combines momentum, trend, and volume for high-probability trades
 
-fastMA = sma(close, 10)
-slowMA = sma(close, 20)
+// Core indicators
+rsi = ta.rsi(close, 14)
+macd = ta.macd(close, 12, 26, 9)
+sma20 = ta.sma(close, 20)
+sma50 = ta.sma(close, 50)
+volume_sma = ta.sma(volume, 20)
 
-buySignal = fastMA > slowMA and fastMA[1] <= slowMA[1]
-sellSignal = fastMA < slowMA and fastMA[1] >= slowMA[1]
+// Volume confirmation
+high_volume = volume > volume_sma * 1.5
+low_volume = volume < volume_sma * 0.5
 
-if buySignal
-    return { action: 'BUY', reason: 'Fast MA crossed above Slow MA', confidence: 75 }
-if sellSignal
-    return { action: 'SELL', reason: 'Fast MA crossed below Slow MA', confidence: 75 }
+// Trend analysis
+uptrend = sma20 > sma50 and close > sma20
+downtrend = sma20 < sma50 and close < sma20
 
-return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
+// RSI conditions
+rsi_oversold = rsi < 30
+rsi_overbought = rsi > 70
+rsi_bullish = rsi > 50 and rsi < 70
+rsi_bearish = rsi < 50 and rsi > 30
+
+// MACD conditions
+macd_bullish = macd.macd > macd.signal and macd.macd > 0
+macd_bearish = macd.macd < macd.signal and macd.macd < 0
+macd_crossover_bull = macd.macd > macd.signal and macd.macd[1] <= macd.signal[1]
+macd_crossover_bear = macd.macd < macd.signal and macd.macd[1] >= macd.signal[1]
+
+// Strong buy signal: RSI oversold + MACD bullish crossover + uptrend + high volume
+if rsi_oversold and macd_crossover_bull and uptrend and high_volume
+    return { action: 'BUY', reason: 'BTC: Strong momentum reversal with volume confirmation', confidence: 85 }
+
+// Moderate buy signal: RSI bullish + MACD bullish + uptrend
+if rsi_bullish and macd_bullish and uptrend
+    return { action: 'BUY', reason: 'BTC: Momentum continuation in uptrend', confidence: 75 }
+
+// Strong sell signal: RSI overbought + MACD bearish crossover + downtrend + high volume
+if rsi_overbought and macd_crossover_bear and downtrend and high_volume
+    return { action: 'SELL', reason: 'BTC: Strong reversal with volume confirmation', confidence: 85 }
+
+// Moderate sell signal: RSI bearish + MACD bearish + downtrend
+if rsi_bearish and macd_bearish and downtrend
+    return { action: 'SELL', reason: 'BTC: Momentum continuation in downtrend', confidence: 75 }
+
+// Weak signals for low volume periods
+if rsi_oversold and macd_bullish and not low_volume
+    return { action: 'BUY', reason: 'BTC: Oversold bounce opportunity', confidence: 60 }
+
+if rsi_overbought and macd_bearish and not low_volume
+    return { action: 'SELL', reason: 'BTC: Overbought reversal opportunity', confidence: 60 }
+
+return { action: 'HOLD', reason: 'BTC: No clear signal, waiting for better conditions', confidence: 0 }
         `,
         isActive: true
       };
 
-      // Save default strategies for both BTC and ETH
-      await this.db.saveStrategy('BTC', defaultStrategy.name, defaultStrategy.code);
-      await this.db.saveStrategy('ETH', defaultStrategy.name, defaultStrategy.code);
+      // Advanced ETH Strategy: Bollinger Bands + Stochastic + Support/Resistance
+      const ethStrategy = {
+        name: 'ETH Mean Reversion Strategy',
+        code: `
+// Advanced ETH Strategy: Bollinger Bands + Stochastic + Support/Resistance
+// Mean reversion strategy optimized for ETH's volatility patterns
+
+// Core indicators
+bb = ta.bb(close, 20, 2)
+stoch = ta.stoch(high, low, close, 14)
+sma20 = ta.sma(close, 20)
+sma50 = ta.sma(close, 50)
+atr = ta.atr(high, low, close, 14)
+
+// Bollinger Bands conditions
+bb_upper = bb.upper
+bb_lower = bb.lower
+bb_middle = bb.middle
+price_near_upper = close >= bb_upper * 0.98
+price_near_lower = close <= bb_lower * 1.02
+price_middle = close >= bb_middle * 0.99 and close <= bb_middle * 1.01
+
+// Stochastic conditions
+stoch_oversold = stoch.k < 20
+stoch_overbought = stoch.k > 80
+stoch_bullish = stoch.k > stoch.d and stoch.k > 50
+stoch_bearish = stoch.k < stoch.d and stoch.k < 50
+
+// Trend analysis
+strong_uptrend = sma20 > sma50 * 1.02 and close > sma20
+strong_downtrend = sma20 < sma50 * 0.98 and close < sma20
+sideways = not strong_uptrend and not strong_downtrend
+
+// Volatility analysis
+high_volatility = atr > ta.sma(atr, 20) * 1.2
+low_volatility = atr < ta.sma(atr, 20) * 0.8
+
+// Strong buy signal: Price at lower band + stochastic oversold + sideways market
+if price_near_lower and stoch_oversold and sideways and not low_volatility
+    return { action: 'BUY', reason: 'ETH: Strong mean reversion from oversold', confidence: 80 }
+
+// Moderate buy signal: Price below middle + stochastic bullish + uptrend
+if close < bb_middle and stoch_bullish and strong_uptrend
+    return { action: 'BUY', reason: 'ETH: Pullback buy in uptrend', confidence: 70 }
+
+// Strong sell signal: Price at upper band + stochastic overbought + sideways market
+if price_near_upper and stoch_overbought and sideways and not low_volatility
+    return { action: 'SELL', reason: 'ETH: Strong mean reversion from overbought', confidence: 80 }
+
+// Moderate sell signal: Price above middle + stochastic bearish + downtrend
+if close > bb_middle and stoch_bearish and strong_downtrend
+    return { action: 'SELL', reason: 'ETH: Bounce sell in downtrend', confidence: 70 }
+
+// Range trading signals
+if price_near_lower and stoch_oversold and high_volatility
+    return { action: 'BUY', reason: 'ETH: Volatile oversold bounce', confidence: 65 }
+
+if price_near_upper and stoch_overbought and high_volatility
+    return { action: 'SELL', reason: 'ETH: Volatile overbought reversal', confidence: 65 }
+
+return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better conditions', confidence: 0 }
+        `,
+        isActive: true
+      };
+
+      // Save advanced strategies for both BTC and ETH
+      await this.db.saveStrategy('BTC', btcStrategy.name, btcStrategy.code);
+      await this.db.saveStrategy('ETH', ethStrategy.name, ethStrategy.code);
       
       // Load strategies from database
       this.strategies.BTC = await this.db.getStrategy('BTC');
       this.strategies.ETH = await this.db.getStrategy('ETH');
       
-      this.logger.info('Default strategies loaded successfully');
+      this.logger.info('Advanced trading strategies loaded successfully');
     } catch (error) {
-      this.logger.error('Failed to load default strategies:', error);
+      this.logger.error('Failed to load advanced strategies:', error);
       throw error;
     }
   }
@@ -222,7 +325,7 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
   }
 
   calculateIndicators(historicalData) {
-    if (historicalData.length < 20) {
+    if (historicalData.length < 50) {
       return {};
     }
     
@@ -236,6 +339,7 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
     // Simple Moving Averages
     indicators.sma10 = technicalIndicators.SMA.calculate({ period: 10, values: closes });
     indicators.sma20 = technicalIndicators.SMA.calculate({ period: 20, values: closes });
+    indicators.sma50 = technicalIndicators.SMA.calculate({ period: 50, values: closes });
     
     // Exponential Moving Averages
     indicators.ema12 = technicalIndicators.EMA.calculate({ period: 12, values: closes });
@@ -257,6 +361,23 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
       period: 20,
       values: closes,
       stdDev: 2
+    });
+    
+    // Stochastic Oscillator
+    indicators.stochastic = technicalIndicators.Stochastic.calculate({
+      high: highs,
+      low: lows,
+      close: closes,
+      period: 14,
+      signalPeriod: 3
+    });
+    
+    // Average True Range (ATR)
+    indicators.atr = technicalIndicators.ATR.calculate({
+      high: highs,
+      low: lows,
+      close: closes,
+      period: 14
     });
     
     return indicators;
@@ -324,41 +445,54 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
       
       const currentPrice = marketData.price;
       const closes = this.historicalData[marketData.symbol]?.map(d => d.close) || [currentPrice];
+      const highs = this.historicalData[marketData.symbol]?.map(d => d.high) || [currentPrice];
+      const lows = this.historicalData[marketData.symbol]?.map(d => d.low) || [currentPrice];
+      const volumes = this.historicalData[marketData.symbol]?.map(d => d.volume) || [1000000];
       
       // Extract indicators from the code
       const hasSMA = code.toLowerCase().includes('sma');
       const hasRSI = code.toLowerCase().includes('rsi');
       const hasMACD = code.toLowerCase().includes('macd');
-      const hasBollinger = code.toLowerCase().includes('bollinger');
+      const hasBollinger = code.toLowerCase().includes('bb') || code.toLowerCase().includes('bollinger');
+      const hasStoch = code.toLowerCase().includes('stoch');
+      const hasATR = code.toLowerCase().includes('atr');
+      const hasVolume = code.toLowerCase().includes('volume');
       
       let action = 'HOLD';
       let reason = 'Custom strategy';
       let confidence = 0;
       
       // Execute based on indicators mentioned in the code
-      if (hasSMA && indicators.sma10 && indicators.sma20) {
+      if (hasSMA && indicators.sma10 && indicators.sma20 && indicators.sma50) {
         const sma10 = indicators.sma10[indicators.sma10.length - 1];
         const sma20 = indicators.sma20[indicators.sma20.length - 1];
+        const sma50 = indicators.sma50[indicators.sma50.length - 1];
         const sma10Prev = indicators.sma10[indicators.sma10.length - 2];
         const sma20Prev = indicators.sma20[indicators.sma20.length - 2];
         
+        // Check for trend conditions
+        const uptrend = sma20 > sma50 && currentPrice > sma20;
+        const downtrend = sma20 < sma50 && currentPrice < sma20;
+        const strong_uptrend = sma20 > sma50 * 1.02 && currentPrice > sma20;
+        const strong_downtrend = sma20 < sma50 * 0.98 && currentPrice < sma20;
+        
         // Check for crossover signals
-        if (sma10 > sma20 && sma10Prev <= sma20Prev) {
+        if (sma10 > sma20 && sma10Prev <= sma20Prev && uptrend) {
           action = 'BUY';
-          reason = 'Custom SMA Strategy: Fast MA crossed above Slow MA';
+          reason = 'Custom SMA Strategy: Fast MA crossed above Slow MA in uptrend';
           confidence = 75;
-        } else if (sma10 < sma20 && sma10Prev >= sma20Prev) {
+        } else if (sma10 < sma20 && sma10Prev >= sma20Prev && downtrend) {
           action = 'SELL';
-          reason = 'Custom SMA Strategy: Fast MA crossed below Slow MA';
+          reason = 'Custom SMA Strategy: Fast MA crossed below Slow MA in downtrend';
           confidence = 75;
-        } else if (sma10 > sma20) {
+        } else if (strong_uptrend) {
           action = 'BUY';
-          reason = 'Custom SMA Strategy: Fast MA above Slow MA';
-          confidence = 60;
-        } else if (sma10 < sma20) {
+          reason = 'Custom SMA Strategy: Strong uptrend continuation';
+          confidence = 70;
+        } else if (strong_downtrend) {
           action = 'SELL';
-          reason = 'Custom SMA Strategy: Fast MA below Slow MA';
-          confidence = 60;
+          reason = 'Custom SMA Strategy: Strong downtrend continuation';
+          confidence = 70;
         }
       }
       
@@ -373,6 +507,14 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
           action = 'SELL';
           reason = 'Custom RSI Strategy: Overbought condition';
           confidence = 80;
+        } else if (rsi > 50 && rsi < 70) {
+          action = 'BUY';
+          reason = 'Custom RSI Strategy: Bullish momentum';
+          confidence = 60;
+        } else if (rsi < 50 && rsi > 30) {
+          action = 'SELL';
+          reason = 'Custom RSI Strategy: Bearish momentum';
+          confidence = 60;
         }
       }
       
@@ -388,13 +530,13 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
           action = 'SELL';
           reason = 'Custom MACD Strategy: MACD crossed below signal';
           confidence = 75;
-        } else if (macd.MACD > macd.signal) {
+        } else if (macd.MACD > macd.signal && macd.MACD > 0) {
           action = 'BUY';
-          reason = 'Custom MACD Strategy: MACD above signal';
+          reason = 'Custom MACD Strategy: MACD above signal and positive';
           confidence = 60;
-        } else if (macd.MACD < macd.signal) {
+        } else if (macd.MACD < macd.signal && macd.MACD < 0) {
           action = 'SELL';
-          reason = 'Custom MACD Strategy: MACD below signal';
+          reason = 'Custom MACD Strategy: MACD below signal and negative';
           confidence = 60;
         }
       }
@@ -410,10 +552,67 @@ return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
           action = 'SELL';
           reason = 'Custom Bollinger Strategy: Price above upper band';
           confidence = 70;
+        } else if (currentPrice >= bb.middle * 0.99 && currentPrice <= bb.middle * 1.01) {
+          // Price near middle band - neutral
+          confidence = Math.max(confidence, 30);
         }
       }
       
-      this.logger.info(`Custom Pine Script executed: ${action} - ${reason}`);
+      if (hasStoch && indicators.stochastic) {
+        const stoch = indicators.stochastic[indicators.stochastic.length - 1];
+        
+        if (stoch.k < 20) {
+          action = 'BUY';
+          reason = 'Custom Stochastic Strategy: Oversold condition';
+          confidence = 75;
+        } else if (stoch.k > 80) {
+          action = 'SELL';
+          reason = 'Custom Stochastic Strategy: Overbought condition';
+          confidence = 75;
+        } else if (stoch.k > stoch.d && stoch.k > 50) {
+          action = 'BUY';
+          reason = 'Custom Stochastic Strategy: Bullish crossover above 50';
+          confidence = 65;
+        } else if (stoch.k < stoch.d && stoch.k < 50) {
+          action = 'SELL';
+          reason = 'Custom Stochastic Strategy: Bearish crossover below 50';
+          confidence = 65;
+        }
+      }
+      
+      if (hasATR && indicators.atr) {
+        const atr = indicators.atr[indicators.atr.length - 1];
+        const atrSMA = indicators.atr.slice(-20).reduce((a, b) => a + b, 0) / 20;
+        
+        const high_volatility = atr > atrSMA * 1.2;
+        const low_volatility = atr < atrSMA * 0.8;
+        
+        if (high_volatility && action === 'BUY') {
+          confidence = Math.min(confidence + 10, 100);
+          reason += ' with high volatility';
+        } else if (low_volatility && action !== 'HOLD') {
+          confidence = Math.max(confidence - 10, 0);
+          reason += ' with low volatility';
+        }
+      }
+      
+      if (hasVolume && volumes.length > 0) {
+        const currentVolume = volumes[volumes.length - 1];
+        const volumeSMA = volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
+        
+        const high_volume = currentVolume > volumeSMA * 1.5;
+        const low_volume = currentVolume < volumeSMA * 0.5;
+        
+        if (high_volume && action !== 'HOLD') {
+          confidence = Math.min(confidence + 10, 100);
+          reason += ' with volume confirmation';
+        } else if (low_volume && action !== 'HOLD') {
+          confidence = Math.max(confidence - 15, 0);
+          reason += ' with low volume';
+        }
+      }
+      
+      this.logger.info(`Custom Pine Script executed: ${action} - ${reason} (confidence: ${confidence})`);
       
       return { action, reason, confidence };
       
