@@ -278,7 +278,7 @@ function App() {
     const dataInterval = setInterval(fetchPortfolioData, 5000); // 5 seconds
     const assetsInterval = setInterval(fetchTotalAssets, 5000); // 5 seconds
     const logsInterval = setInterval(fetchTradingLogs, 5000); // 5 seconds
-    const tradingStatusInterval = setInterval(fetchTradingStatus, 5000); // 5 seconds
+    const tradingStatusInterval = setInterval(fetchTradingStatus, 10000); // 10 seconds
     const tradesInterval = setInterval(fetchTradesHistory, 5000); // 5 seconds
     const advancedMetricsInterval = setInterval(fetchAdvancedMetrics, 5000); // 5 seconds
 
@@ -309,6 +309,11 @@ function App() {
         fetchTotalAssets();
         fetchTradesHistory();
         fetchTradingLogs();
+        
+        // Verify the status after a short delay
+        setTimeout(() => {
+          fetchTradingStatus();
+        }, 1000);
       } else {
         addNotification('error', 'Failed to Start Trading', 'Could not start trading system');
       }
@@ -332,6 +337,11 @@ function App() {
         fetchTotalAssets();
         fetchTradesHistory();
         fetchTradingLogs();
+        
+        // Verify the status after a short delay
+        setTimeout(() => {
+          fetchTradingStatus();
+        }, 1000);
       } else {
         addNotification('error', 'Failed to Stop Trading', 'Could not stop trading system');
       }
