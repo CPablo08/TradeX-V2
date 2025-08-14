@@ -227,7 +227,7 @@ function gracefulShutdown(signal) {
   }
   
   // Close WebSocket connections
-  if (dataRetriever) {
+  if (dataRetriever && typeof dataRetriever.close === 'function') {
     dataRetriever.close();
   }
   

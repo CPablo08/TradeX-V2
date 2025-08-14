@@ -232,6 +232,31 @@ function App() {
     }
   }, []);
 
+  const fetchStrategies = useCallback(async () => {
+    try {
+      const [btcResponse, ethResponse] = await Promise.all([
+        fetch('http://localhost:5000/api/strategies/BTC'),
+        fetch('http://localhost:5000/api/strategies/ETH')
+      ]);
+      
+      if (btcResponse.ok) {
+        const btcData = await btcResponse.json();
+        if (btcData.success && btcData.data) {
+          setBtcStrategy(btcData.data.code || '');
+        }
+      }
+      
+      if (ethResponse.ok) {
+        const ethData = await ethResponse.json();
+        if (ethData.success && ethData.data) {
+          setEthStrategy(ethData.data.code || '');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching strategies:', error);
+    }
+  }, []);
+
   useEffect(() => {
     // Initial fetch
     fetchSystemStatus();
@@ -241,6 +266,7 @@ function App() {
     fetchTradingStatus();
     fetchTradesHistory();
     fetchAdvancedMetrics();
+    fetchStrategies();
     
     // Welcome notification
     addNotification('info', 'TradeX Dashboard', 'Welcome! Dashboard is now active and monitoring your trading system.');
@@ -265,7 +291,7 @@ function App() {
       clearInterval(tradesInterval);
       clearInterval(advancedMetricsInterval);
     };
-  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchAdvancedMetrics, updateTimestamp, addNotification]);
+  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchAdvancedMetrics, fetchStrategies, updateTimestamp, addNotification]);
 
   const startTrading = async () => {
     try {

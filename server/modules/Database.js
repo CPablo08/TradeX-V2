@@ -200,8 +200,8 @@ class Database {
   // Strategy methods
   async saveStrategy(symbol, name, code) {
     const sql = `
-      INSERT OR REPLACE INTO strategies (symbol, name, code, updated_at)
-      VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT OR REPLACE INTO strategies (symbol, name, code, is_active, updated_at)
+      VALUES (?, ?, ?, 1, CURRENT_TIMESTAMP)
     `;
     await this.run(sql, [symbol, name, code]);
   }
