@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import TradingViewWidget from './components/TradingViewWidget';
 
@@ -28,7 +28,6 @@ const Notification = ({ type, title, message, onClose }) => {
 
 function App() {
   const [backendStatus, setBackendStatus] = useState('Checking...');
-  const [systemStatus, setSystemStatus] = useState({});
   const [portfolioData, setPortfolioData] = useState({
     totalPL: 0,
     totalTrades: 0,
@@ -47,14 +46,12 @@ function App() {
     totalValue: 0
   });
   const [tradingLogs, setTradingLogs] = useState([]);
-  const [tradingStatus, setTradingStatus] = useState('');
   const [tradesHistory, setTradesHistory] = useState([]);
   const [showConfig, setShowConfig] = useState(false);
   const [tradingMode, setTradingMode] = useState('paper');
   const [isTradingActive, setIsTradingActive] = useState(false);
   const [btcStrategy, setBtcStrategy] = useState('');
   const [ethStrategy, setEthStrategy] = useState('');
-  const [strategyStatus, setStrategyStatus] = useState('');
   const [marketData, setMarketData] = useState({
     BTC: { price: 0, change24h: 0 },
     ETH: { price: 0, change24h: 0 }
@@ -71,7 +68,7 @@ function App() {
   const timestampRef = useRef();
 
   // Notification functions
-  const addNotification = (type, title, message) => {
+  const addNotification = useCallback((type, title, message) => {
     const id = Date.now();
     const newNotification = { id, type, title, message };
     setNotifications(prev => [...prev, newNotification]);
@@ -80,36 +77,35 @@ function App() {
     setTimeout(() => {
       removeNotification(id);
     }, 5000);
-  };
+  }, []);
 
   const removeNotification = (id) => {
     setNotifications(prev => prev.filter(notification => notification.id !== id));
   };
 
   // Fetch functions - moved outside useEffect for global access
-  const updateTimestamp = () => {
+  const updateTimestamp = useCallback(() => {
     if (timestampRef.current) {
       timestampRef.current.textContent = new Date().toLocaleString();
     }
-  };
+  }, []);
 
-  const fetchSystemStatus = async () => {
+  const fetchSystemStatus = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/system/status');
       if (response.ok) {
-        const data = await response.json();
-        setSystemStatus(data.data);
-        setBackendStatus('🟢 Online');
+        await response.json();
+        setBackendStatus('Online');
       } else {
-        setBackendStatus('🔴 Offline');
+        setBackendStatus('Offline');
       }
     } catch (error) {
-      setBackendStatus('🔴 Offline');
+      setBackendStatus('Offline');
       addNotification('error', 'Connection Error', 'Failed to connect to backend server');
     }
-  };
+  }, [addNotification]);
 
-  const fetchPortfolioData = async () => {
+  const fetchPortfolioData = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/data/portfolio-metrics');
       if (response.ok) {
@@ -120,9 +116,9 @@ function App() {
       console.error('Error fetching portfolio data:', error);
       addNotification('error', 'Data Error', 'Failed to fetch portfolio metrics');
     }
-  };
+  }, [addNotification]);
 
-  const fetchTotalAssets = async () => {
+  const fetchTotalAssets = useCallback(async () => {
     try {
       const [btcResponse, ethResponse] = await Promise.all([
         fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot'),
@@ -185,9 +181,9 @@ function App() {
       console.error('Error fetching total assets:', error);
       addNotification('error', 'Market Data Error', 'Failed to fetch latest prices from Coinbase');
     }
-  };
+  }, [addNotification]);
 
-  const fetchTradingLogs = async () => {
+  const fetchTradingLogs = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/system/trading-logs');
       if (response.ok) {
@@ -197,9 +193,9 @@ function App() {
     } catch (error) {
       console.error('Error fetching trading logs:', error);
     }
-  };
+  }, []);
 
-  const fetchTradingStatus = async () => {
+  const fetchTradingStatus = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/system/trading-status');
       if (response.ok) {
@@ -210,9 +206,9 @@ function App() {
     } catch (error) {
       console.error('Error fetching trading status:', error);
     }
-  };
+  }, []);
 
-  const fetchTradesHistory = async () => {
+  const fetchTradesHistory = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/trading/history?limit=50');
       if (response.ok) {
@@ -222,9 +218,9 @@ function App() {
     } catch (error) {
       console.error('Error fetching trades history:', error);
     }
-  };
+  }, []);
 
-  const fetchAdvancedMetrics = async () => {
+  const fetchAdvancedMetrics = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:5000/api/data/advanced-metrics');
       if (response.ok) {
@@ -234,7 +230,7 @@ function App() {
     } catch (error) {
       console.error('Error fetching advanced metrics:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Initial fetch
@@ -269,7 +265,7 @@ function App() {
       clearInterval(tradesInterval);
       clearInterval(advancedMetricsInterval);
     };
-  }, []);
+  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchAdvancedMetrics, updateTimestamp, addNotification]);
 
   const startTrading = async () => {
     try {
@@ -426,20 +422,20 @@ function App() {
           <div className="status-item">
             <span>Backend:</span>
             <span className={`status-value ${backendStatus.includes('Online') ? 'online' : 'offline'}`}>
-              {backendStatus.includes('Online') ? '🟢 Online' : '🔴 Offline'}
+              {backendStatus.includes('Online') ? 'Online' : 'Offline'}
             </span>
           </div>
           <div className="status-item">
             <span>Frontend:</span>
-            <span className="status-value online">🟢 Online</span>
+            <span className="status-value online">Online</span>
           </div>
           <div className="status-item">
             <span>Database:</span>
-            <span className="status-value online">🟢 Online</span>
+            <span className="status-value online">Online</span>
           </div>
           <div className="status-item">
             <span>API:</span>
-            <span className="status-value online">🟢 Online</span>
+            <span className="status-value online">Online</span>
           </div>
         </div>
 
@@ -521,12 +517,7 @@ function App() {
           </div>
         </div>
 
-        {/* Trading Status */}
-        {tradingStatus && (
-          <div className="trading-status">
-            {tradingStatus}
-          </div>
-        )}
+
 
         {/* Summary Cards */}
         <div className="summary-cards">
@@ -711,9 +702,6 @@ function App() {
                     </button>
                   </div>
                 </div>
-                {strategyStatus && (
-                  <div className="strategy-status">{strategyStatus}</div>
-                )}
               </div>
 
               {/* Trade History Section */}

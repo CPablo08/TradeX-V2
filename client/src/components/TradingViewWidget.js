@@ -28,14 +28,15 @@ const TradingViewWidget = ({ symbol = 'BTC' }) => {
         "support_host": "https://www.tradingview.com"
       }`;
     
-    if (container.current) {
-      container.current.innerHTML = '';
-      container.current.appendChild(script);
+    const currentContainer = container.current;
+    if (currentContainer) {
+      currentContainer.innerHTML = '';
+      currentContainer.appendChild(script);
     }
 
     return () => {
-      if (container.current) {
-        container.current.innerHTML = '';
+      if (currentContainer) {
+        currentContainer.innerHTML = '';
       }
     };
   }, [symbol]);
