@@ -194,23 +194,57 @@ function startScheduledTasks() {
 
 // Trading control functions
 function startTrading() {
-  if (isTradingActive) {
-    return { success: false, message: 'Trading is already active' };
+  try {
+    if (isTradingActive) {
+      logger.info('Trading system already active');
+      return { success: false, message: 'Trading is already active' };
+    }
+    
+    // Verify system components are ready
+    if (!systemInitialized) {
+      logger.error('System not fully initialized');
+      return { success: false, message: 'System not fully initialized' };
+    }
+    
+    if (!dataRetriever || !logicEngine || !executor) {
+      logger.error('Required components not available');
+      return { success: false, message: 'Required components not available' };
+    }
+    
+    // Activate trading
+    isTradingActive = true;
+    logger.info('Trading system activated successfully');
+    
+    // Trigger immediate data fetch
+    if (dataRetriever && typeof dataRetriever.fetchInitialData === 'function') {
+      dataRetriever.fetchInitialData().catch(err => {
+        logger.error('Error fetching initial data after starting trading:', err);
+      });
+    }
+    
+    return { success: true, message: 'Trading system started successfully' };
+  } catch (error) {
+    logger.error('Error starting trading:', error);
+    return { success: false, message: `Error starting trading: ${error.message}` };
   }
-  
-  isTradingActive = true;
-  logger.info('Trading system activated');
-  return { success: true, message: 'Trading system started successfully' };
 }
 
 function stopTrading() {
-  if (!isTradingActive) {
-    return { success: false, message: 'Trading is not active' };
+  try {
+    if (!isTradingActive) {
+      logger.info('Trading system already inactive');
+      return { success: false, message: 'Trading is not active' };
+    }
+    
+    // Deactivate trading
+    isTradingActive = false;
+    logger.info('Trading system deactivated successfully');
+    
+    return { success: true, message: 'Trading system stopped successfully' };
+  } catch (error) {
+    logger.error('Error stopping trading:', error);
+    return { success: false, message: `Error stopping trading: ${error.message}` };
   }
-  
-  isTradingActive = false;
-  logger.info('Trading system deactivated');
-  return { success: true, message: 'Trading system stopped successfully' };
 }
 
 function getTradingStatus() {
