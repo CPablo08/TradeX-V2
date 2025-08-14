@@ -102,9 +102,30 @@ router.get('/portfolio-metrics', async (req, res) => {
       }
     });
     
-    // Calculate portfolio value (starting balance + total P&L)
+    // Calculate current positions and their value
+    let totalPositionValue = 0;
+    for (const [symbol, trades] of tradeMap) {
+      let netQuantity = 0;
+      let avgPrice = 0;
+      let totalCost = 0;
+      
+      trades.forEach(trade => {
+        netQuantity += trade.quantity;
+        totalCost += trade.quantity * trade.price;
+      });
+      
+      if (netQuantity !== 0) {
+        avgPrice = totalCost / netQuantity;
+        // For now, use a simple estimate of current value
+        // In a real implementation, you'd fetch current market prices
+        const currentPrice = avgPrice; // Placeholder - should be real market price
+        totalPositionValue += netQuantity * currentPrice;
+      }
+    }
+    
+    // Calculate portfolio value (starting balance + total P&L + current positions)
     const startingBalance = 1000; // Paper trading starting balance
-    const portfolioValue = startingBalance + totalPL;
+    const portfolioValue = startingBalance + totalPL + totalPositionValue;
     
     // Calculate win rate
     const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
@@ -117,6 +138,7 @@ router.get('/portfolio-metrics', async (req, res) => {
       losingTrades: losingTrades,
       winRate: winRate,
       startingBalance: startingBalance,
+      currentPositions: totalPositionValue,
       timestamp: new Date()
     };
     
