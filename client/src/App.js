@@ -563,7 +563,16 @@ function App() {
         {/* TradingView Charts */}
         <div className="charts-section">
           <h3>Live Market Charts</h3>
-          <TradingViewWidget />
+          <div className="charts-grid">
+            <div className="chart-panel">
+              <h4>BTC/USD Chart</h4>
+              <TradingViewWidget symbol="BTC" />
+            </div>
+            <div className="chart-panel">
+              <h4>ETH/USD Chart</h4>
+              <TradingViewWidget symbol="ETH" />
+            </div>
+          </div>
         </div>
       </div>
 
