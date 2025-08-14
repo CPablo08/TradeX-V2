@@ -533,7 +533,7 @@ function App() {
         <div className="summary-cards">
           <div className="card">
             <div className="card-header">Total P&L</div>
-            <div className={`card-value ${portfolioData.totalPL === 'API Error' ? 'negative' : portfolioData.totalPL >= 0 ? 'positive' : 'negative'}`}>
+            <div className={`card-value ${portfolioData.totalPL === 'API Error' ? 'negative' : portfolioData.totalPL > 0 ? 'positive' : portfolioData.totalPL < 0 ? 'negative' : 'neutral'}`}>
               {formatCurrency(portfolioData.totalPL)}
             </div>
             <div className="card-subtitle">Realized + Unrealized</div>
@@ -541,7 +541,7 @@ function App() {
           
           <div className="card">
             <div className="card-header">Total Trades</div>
-            <div className={`card-value ${portfolioData.totalTrades === 'API Error' ? 'negative' : 'positive'}`}>
+            <div className={`card-value ${portfolioData.totalTrades === 'API Error' ? 'negative' : portfolioData.totalTrades > 0 ? 'positive' : 'neutral'}`}>
               {portfolioData.totalTrades === 'API Error' ? 'API Error' : portfolioData.totalTrades}
             </div>
             <div className="card-subtitle">Win Rate: {formatPercentage(portfolioData.winRate)}</div>
@@ -549,7 +549,7 @@ function App() {
           
           <div className="card">
             <div className="card-header">Portfolio Value</div>
-            <div className={`card-value ${portfolioData.portfolioValue === 'API Error' ? 'negative' : 'positive'}`}>
+            <div className={`card-value ${portfolioData.portfolioValue === 'API Error' ? 'negative' : portfolioData.portfolioValue > 1000 ? 'positive' : portfolioData.portfolioValue < 1000 ? 'negative' : 'neutral'}`}>
               {formatCurrency(portfolioData.portfolioValue)}
             </div>
             <div className="card-subtitle">Starting: $1,000.00</div>
@@ -557,7 +557,7 @@ function App() {
           
           <div className="card">
             <div className="card-header">Total Assets</div>
-            <div className={`card-value ${totalAssets.totalValue === 'API Error' ? 'negative' : 'positive'}`}>
+            <div className={`card-value ${totalAssets.totalValue === 'API Error' ? 'negative' : totalAssets.totalValue > 0 ? 'positive' : 'neutral'}`}>
               {formatCurrency(totalAssets.totalValue)}
             </div>
             <div className="card-subtitle">BTC: {formatCurrency(totalAssets.btcValue)} | ETH: {formatCurrency(totalAssets.ethValue)}</div>
@@ -570,45 +570,49 @@ function App() {
           <div className="metrics-grid">
             <div className="metric-card">
               <div className="metric-label">Average Win</div>
-              <div className="metric-value positive">{formatCurrency(portfolioData.avgWin)}</div>
+              <div className={`metric-value ${portfolioData.avgWin === 'API Error' ? 'negative' : portfolioData.avgWin > 0 ? 'positive' : 'neutral'}`}>
+                {formatCurrency(portfolioData.avgWin)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Average Loss</div>
-              <div className="metric-value negative">{formatCurrency(portfolioData.avgLoss)}</div>
+              <div className={`metric-value ${portfolioData.avgLoss === 'API Error' ? 'negative' : portfolioData.avgLoss > 0 ? 'negative' : 'neutral'}`}>
+                {formatCurrency(portfolioData.avgLoss)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Profit Factor</div>
-              <div className={`metric-value ${portfolioData.profitFactor === 'API Error' ? 'negative' : portfolioData.profitFactor >= 1.5 ? 'positive' : portfolioData.profitFactor >= 1.0 ? 'positive' : 'negative'}`}>
+              <div className={`metric-value ${portfolioData.profitFactor === 'API Error' ? 'negative' : portfolioData.profitFactor > 1.5 ? 'positive' : portfolioData.profitFactor < 1.0 ? 'negative' : 'neutral'}`}>
                 {portfolioData.profitFactor === 'API Error' ? 'API Error' : portfolioData.profitFactor.toFixed(2)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Max Drawdown</div>
-              <div className={`metric-value ${portfolioData.maxDrawdown === 'API Error' ? 'negative' : portfolioData.maxDrawdown <= 10 ? 'positive' : portfolioData.maxDrawdown <= 20 ? 'positive' : 'negative'}`}>
+              <div className={`metric-value ${portfolioData.maxDrawdown === 'API Error' ? 'negative' : portfolioData.maxDrawdown < 10 ? 'positive' : portfolioData.maxDrawdown > 20 ? 'negative' : 'neutral'}`}>
                 {portfolioData.maxDrawdown === 'API Error' ? 'API Error' : formatPercentage(portfolioData.maxDrawdown)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Sharpe Ratio</div>
-              <div className={`metric-value ${portfolioData.sharpeRatio === 'API Error' ? 'negative' : portfolioData.sharpeRatio >= 1.0 ? 'positive' : portfolioData.sharpeRatio >= 0.5 ? 'positive' : 'negative'}`}>
+              <div className={`metric-value ${portfolioData.sharpeRatio === 'API Error' ? 'negative' : portfolioData.sharpeRatio > 1.0 ? 'positive' : portfolioData.sharpeRatio < 0.5 ? 'negative' : 'neutral'}`}>
                 {portfolioData.sharpeRatio === 'API Error' ? 'API Error' : portfolioData.sharpeRatio.toFixed(2)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Winning Trades</div>
-              <div className={`metric-value ${portfolioData.winningTrades === 'API Error' ? 'negative' : 'positive'}`}>
+              <div className={`metric-value ${portfolioData.winningTrades === 'API Error' ? 'negative' : portfolioData.winningTrades > 0 ? 'positive' : 'neutral'}`}>
                 {portfolioData.winningTrades === 'API Error' ? 'API Error' : (portfolioData.winningTrades || 0)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Losing Trades</div>
-              <div className={`metric-value ${portfolioData.losingTrades === 'API Error' ? 'negative' : 'negative'}`}>
+              <div className={`metric-value ${portfolioData.losingTrades === 'API Error' ? 'negative' : portfolioData.losingTrades > 0 ? 'negative' : 'neutral'}`}>
                 {portfolioData.losingTrades === 'API Error' ? 'API Error' : (portfolioData.losingTrades || 0)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Risk/Reward</div>
-              <div className={`metric-value ${portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'negative' : portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss) >= 2.0 ? 'positive' : (portfolioData.avgWin / portfolioData.avgLoss) >= 1.5 ? 'positive' : 'negative' : 'positive'}`}>
+              <div className={`metric-value ${portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'negative' : portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss) > 2.0 ? 'positive' : (portfolioData.avgWin / portfolioData.avgLoss) < 1.5 ? 'negative' : 'neutral' : 'neutral'}`}>
                 {portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'API Error' : (portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss).toFixed(2) : 'N/A')}
               </div>
             </div>
