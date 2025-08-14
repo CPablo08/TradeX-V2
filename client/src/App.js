@@ -85,6 +85,7 @@ function App() {
       const response = await fetch('http://localhost:5000/api/data/portfolio-metrics');
       if (response.ok) {
         const data = await response.json();
+        console.log('Portfolio data received:', data.data);
         setPortfolioData({
           totalPL: data.data?.totalPL || 0,
           totalTrades: data.data?.totalTrades || 0,
@@ -138,6 +139,16 @@ function App() {
           const btcValue = btcQuantity * btcPrice;
           const ethValue = ethQuantity * ethPrice;
           const totalValue = btcValue + ethValue;
+          
+          console.log('Total assets calculation:', {
+            btcQuantity,
+            ethQuantity,
+            btcPrice,
+            ethPrice,
+            btcValue,
+            ethValue,
+            totalValue
+          });
           
           setTotalAssets({
             btcValue: btcValue,
