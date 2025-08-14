@@ -248,9 +248,11 @@ function App() {
     try {
       const response = await fetch('http://localhost:5000/api/system/trading-status');
       if (response.ok) {
-        const data = await response.json();
-        setTradingMode(data.tradingMode || 'paper');
-        setIsTradingActive(data.isActive || false);
+        const result = await response.json();
+        if (result.success && result.data) {
+          setTradingMode(result.data.tradingMode || 'paper');
+          setIsTradingActive(result.data.isActive || false);
+        }
       }
     } catch (error) {
       console.error('Error fetching trading status:', error);
@@ -326,7 +328,7 @@ function App() {
     const dataInterval = setInterval(fetchPortfolioData, 5000); // 5 seconds
     const assetsInterval = setInterval(fetchTotalAssets, 5000); // 5 seconds
     const logsInterval = setInterval(fetchTradingLogs, 5000); // 5 seconds
-    const tradingStatusInterval = setInterval(fetchTradingStatus, 10000); // 10 seconds
+    const tradingStatusInterval = setInterval(fetchTradingStatus, 30000); // 30 seconds
     const tradesInterval = setInterval(fetchTradesHistory, 5000); // 5 seconds
     const advancedMetricsInterval = setInterval(fetchAdvancedMetrics, 5000); // 5 seconds
 
@@ -358,10 +360,7 @@ function App() {
         fetchTradesHistory();
         fetchTradingLogs();
         
-        // Verify the status after a short delay
-        setTimeout(() => {
-          fetchTradingStatus();
-        }, 1000);
+        // Note: Trading status will be updated by the interval
       } else {
         addNotification('error', 'Failed to Start Trading', 'Could not start trading system');
       }
@@ -386,10 +385,7 @@ function App() {
         fetchTradesHistory();
         fetchTradingLogs();
         
-        // Verify the status after a short delay
-        setTimeout(() => {
-          fetchTradingStatus();
-        }, 1000);
+        // Note: Trading status will be updated by the interval
       } else {
         addNotification('error', 'Failed to Stop Trading', 'Could not stop trading system');
       }
