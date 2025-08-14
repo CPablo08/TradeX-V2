@@ -10,6 +10,11 @@ function App() {
     totalTrades: 0,
     portfolioValue: 0
   });
+  const [totalAssets, setTotalAssets] = useState({
+    btcValue: 0,
+    ethValue: 0,
+    totalValue: 0
+  });
 
   const [showConfig, setShowConfig] = useState(false);
   const [tradingMode, setTradingMode] = useState('paper');
@@ -25,6 +30,7 @@ function App() {
     updateTimestamp();
     fetchSystemStatus();
     fetchPortfolioData();
+    fetchTotalAssets();
     fetchTradingLogs();
     fetchTradingStatus();
     fetchStrategies();
@@ -33,6 +39,7 @@ function App() {
     const timestampInterval = setInterval(updateTimestamp, 1000);
     const statusInterval = setInterval(fetchSystemStatus, 10000);
     const dataInterval = setInterval(fetchPortfolioData, 30000);
+    const assetsInterval = setInterval(fetchTotalAssets, 30000);
     const logsInterval = setInterval(fetchTradingLogs, 5000);
     const tradingStatusInterval = setInterval(fetchTradingStatus, 5000);
     const tradesInterval = setInterval(fetchTradesHistory, 10000);
@@ -41,6 +48,7 @@ function App() {
       clearInterval(timestampInterval);
       clearInterval(statusInterval);
       clearInterval(dataInterval);
+      clearInterval(assetsInterval);
       clearInterval(logsInterval);
       clearInterval(tradingStatusInterval);
       clearInterval(tradesInterval);
@@ -85,6 +93,61 @@ function App() {
       }
     } catch (error) {
       console.error('Error fetching portfolio data:', error);
+    }
+  };
+
+  const fetchTotalAssets = async () => {
+    try {
+      const [btcResponse, ethResponse] = await Promise.all([
+        fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot'),
+        fetch('https://api.coinbase.com/v2/prices/ETH-USD/spot')
+      ]);
+      
+      if (btcResponse.ok && ethResponse.ok) {
+        const btcData = await btcResponse.json();
+        const ethData = await ethResponse.json();
+        
+        const btcPrice = parseFloat(btcData.data.amount);
+        const ethPrice = parseFloat(ethData.data.amount);
+        
+        // Calculate total assets based on recent trades
+        const response = await fetch('http://localhost:5000/api/trading/history?limit=100');
+        if (response.ok) {
+          const tradesData = await response.json();
+          const trades = tradesData.data || [];
+          
+          let btcQuantity = 0;
+          let ethQuantity = 0;
+          
+          trades.forEach(trade => {
+            if (trade.symbol === 'BTC') {
+              if (trade.action === 'BUY') {
+                btcQuantity += trade.quantity || 0;
+              } else if (trade.action === 'SELL') {
+                btcQuantity -= trade.quantity || 0;
+              }
+            } else if (trade.symbol === 'ETH') {
+              if (trade.action === 'BUY') {
+                ethQuantity += trade.quantity || 0;
+              } else if (trade.action === 'SELL') {
+                ethQuantity -= trade.quantity || 0;
+              }
+            }
+          });
+          
+          const btcValue = btcQuantity * btcPrice;
+          const ethValue = ethQuantity * ethPrice;
+          const totalValue = btcValue + ethValue;
+          
+          setTotalAssets({
+            btcValue: btcValue,
+            ethValue: ethValue,
+            totalValue: totalValue
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching total assets:', error);
     }
   };
 
@@ -400,6 +463,14 @@ function App() {
           <div className="card-value">{formatCurrency(portfolioData.portfolioValue)}</div>
           <div className="card-change">
             Starting: $1,000 | Current: {formatCurrency(portfolioData.portfolioValue)}
+          </div>
+        </div>
+        
+        <div className="summary-card">
+          <div className="card-title">Total Assets</div>
+          <div className="card-value">{formatCurrency(totalAssets.totalValue)}</div>
+          <div className="card-change">
+            BTC: {formatCurrency(totalAssets.btcValue)} | ETH: {formatCurrency(totalAssets.ethValue)}
           </div>
         </div>
       </div>
