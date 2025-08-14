@@ -351,16 +351,16 @@ function App() {
       
       if (response.ok) {
         setTradingMode(newMode);
-        setTradingStatus(`🔄 Trading mode switched to ${newMode.toUpperCase()} trading`);
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 3000);
+        addNotification('info', 'Trading Mode Changed', `Switched to ${newMode.toUpperCase()} trading mode`);
+        
+        if (newMode === 'real') {
+          addNotification('warning', 'Real Trading Mode', 'Some metrics may show "API Error" as they require Coinbase API credentials');
+        }
+      } else {
+        addNotification('error', 'Mode Switch Failed', 'Failed to switch trading mode');
       }
     } catch (error) {
-      setTradingStatus('❌ Error switching trading mode');
-      setTimeout(() => {
-        setTradingStatus('');
-      }, 3000);
+      addNotification('error', 'Mode Switch Error', 'Error connecting to server');
     }
   };
 
@@ -385,6 +385,9 @@ function App() {
   };
 
   const formatCurrency = (value) => {
+    if (value === 'API Error' || value === null || value === undefined) {
+      return 'API Error';
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -394,6 +397,9 @@ function App() {
   };
 
   const formatPercentage = (value) => {
+    if (value === 'API Error' || value === null || value === undefined) {
+      return 'API Error';
+    }
     return `${value.toFixed(2)}%`;
   };
 
@@ -518,7 +524,7 @@ function App() {
         <div className="summary-cards">
           <div className="card">
             <div className="card-header">Total P&L</div>
-            <div className={`card-value ${portfolioData.totalPL >= 0 ? 'positive' : 'negative'}`}>
+            <div className={`card-value ${portfolioData.totalPL === 'API Error' ? 'negative' : portfolioData.totalPL >= 0 ? 'positive' : 'negative'}`}>
               {formatCurrency(portfolioData.totalPL)}
             </div>
             <div className="card-subtitle">Realized + Unrealized</div>
@@ -526,19 +532,25 @@ function App() {
           
           <div className="card">
             <div className="card-header">Total Trades</div>
-            <div className="card-value">{portfolioData.totalTrades}</div>
+            <div className={`card-value ${portfolioData.totalTrades === 'API Error' ? 'negative' : 'positive'}`}>
+              {portfolioData.totalTrades === 'API Error' ? 'API Error' : portfolioData.totalTrades}
+            </div>
             <div className="card-subtitle">Win Rate: {formatPercentage(portfolioData.winRate)}</div>
           </div>
           
           <div className="card">
             <div className="card-header">Portfolio Value</div>
-            <div className="card-value">{formatCurrency(portfolioData.portfolioValue)}</div>
+            <div className={`card-value ${portfolioData.portfolioValue === 'API Error' ? 'negative' : 'positive'}`}>
+              {formatCurrency(portfolioData.portfolioValue)}
+            </div>
             <div className="card-subtitle">Starting: $1,000.00</div>
           </div>
           
           <div className="card">
             <div className="card-header">Total Assets</div>
-            <div className="card-value">{formatCurrency(totalAssets.totalValue)}</div>
+            <div className={`card-value ${totalAssets.totalValue === 'API Error' ? 'negative' : 'positive'}`}>
+              {formatCurrency(totalAssets.totalValue)}
+            </div>
             <div className="card-subtitle">BTC: {formatCurrency(totalAssets.btcValue)} | ETH: {formatCurrency(totalAssets.ethValue)}</div>
           </div>
         </div>
@@ -557,34 +569,38 @@ function App() {
             </div>
             <div className="metric-card">
               <div className="metric-label">Profit Factor</div>
-              <div className={`metric-value ${portfolioData.profitFactor >= 1.5 ? 'positive' : portfolioData.profitFactor >= 1.0 ? 'positive' : 'negative'}`}>
-                {portfolioData.profitFactor.toFixed(2)}
+              <div className={`metric-value ${portfolioData.profitFactor === 'API Error' ? 'negative' : portfolioData.profitFactor >= 1.5 ? 'positive' : portfolioData.profitFactor >= 1.0 ? 'positive' : 'negative'}`}>
+                {portfolioData.profitFactor === 'API Error' ? 'API Error' : portfolioData.profitFactor.toFixed(2)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Max Drawdown</div>
-              <div className={`metric-value ${portfolioData.maxDrawdown <= 10 ? 'positive' : portfolioData.maxDrawdown <= 20 ? 'positive' : 'negative'}`}>
-                {formatPercentage(portfolioData.maxDrawdown)}
+              <div className={`metric-value ${portfolioData.maxDrawdown === 'API Error' ? 'negative' : portfolioData.maxDrawdown <= 10 ? 'positive' : portfolioData.maxDrawdown <= 20 ? 'positive' : 'negative'}`}>
+                {portfolioData.maxDrawdown === 'API Error' ? 'API Error' : formatPercentage(portfolioData.maxDrawdown)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Sharpe Ratio</div>
-              <div className={`metric-value ${portfolioData.sharpeRatio >= 1.0 ? 'positive' : portfolioData.sharpeRatio >= 0.5 ? 'positive' : 'negative'}`}>
-                {portfolioData.sharpeRatio.toFixed(2)}
+              <div className={`metric-value ${portfolioData.sharpeRatio === 'API Error' ? 'negative' : portfolioData.sharpeRatio >= 1.0 ? 'positive' : portfolioData.sharpeRatio >= 0.5 ? 'positive' : 'negative'}`}>
+                {portfolioData.sharpeRatio === 'API Error' ? 'API Error' : portfolioData.sharpeRatio.toFixed(2)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Winning Trades</div>
-              <div className="metric-value positive">{portfolioData.winningTrades || 0}</div>
+              <div className={`metric-value ${portfolioData.winningTrades === 'API Error' ? 'negative' : 'positive'}`}>
+                {portfolioData.winningTrades === 'API Error' ? 'API Error' : (portfolioData.winningTrades || 0)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Losing Trades</div>
-              <div className="metric-value negative">{portfolioData.losingTrades || 0}</div>
+              <div className={`metric-value ${portfolioData.losingTrades === 'API Error' ? 'negative' : 'negative'}`}>
+                {portfolioData.losingTrades === 'API Error' ? 'API Error' : (portfolioData.losingTrades || 0)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Risk/Reward</div>
-              <div className={`metric-value ${portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss) >= 2.0 ? 'positive' : (portfolioData.avgWin / portfolioData.avgLoss) >= 1.5 ? 'positive' : 'negative' : 'positive'}`}>
-                {portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss).toFixed(2) : 'N/A'}
+              <div className={`metric-value ${portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'negative' : portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss) >= 2.0 ? 'positive' : (portfolioData.avgWin / portfolioData.avgLoss) >= 1.5 ? 'positive' : 'negative' : 'positive'}`}>
+                {portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'API Error' : (portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss).toFixed(2) : 'N/A')}
               </div>
             </div>
           </div>

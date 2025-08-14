@@ -29,20 +29,28 @@ class DataRetriever {
       
       for (const symbol of symbols) {
         try {
-          const response = await axios.get(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`);
+          // Fetch spot price from Coinbase
+          const spotResponse = await axios.get(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`);
           
-          if (response.data && response.data.data) {
-            const price = parseFloat(response.data.data.amount);
+          // Fetch ticker data from Coinbase Exchange (Advanced Trade)
+          const tickerResponse = await axios.get(`https://api.exchange.coinbase.com/products/${symbol}-USD/ticker`);
+          
+          if (spotResponse.data && spotResponse.data.data && tickerResponse.data) {
+            const price = parseFloat(spotResponse.data.data.amount);
+            const ticker = tickerResponse.data;
             const timestamp = new Date();
             
             this.marketData[symbol] = {
               symbol: symbol,
               price: price,
               timestamp: timestamp,
-              volume: this.generateMockVolume(symbol, price),
-              high: price * (1 + Math.random() * 0.02),
-              low: price * (1 - Math.random() * 0.02),
-              open: price * (1 + (Math.random() - 0.5) * 0.01)
+              volume: parseFloat(ticker.volume) || this.generateMockVolume(symbol, price),
+              bid: parseFloat(ticker.bid),
+              ask: parseFloat(ticker.ask),
+              high: price * (1 + Math.random() * 0.02), // Not available in public API
+              low: price * (1 - Math.random() * 0.02),  // Not available in public API
+              open: price * (1 + (Math.random() - 0.5) * 0.01), // Not available in public API
+              change24h: 0 // Not available in public API
             };
             
             // Save to database
@@ -131,8 +139,6 @@ class DataRetriever {
 
   async fetchCoinbaseAccountData() {
     try {
-      // For real trading, we would use Coinbase API
-      // This is a placeholder for when real trading is implemented
       const apiKey = process.env.COINBASE_API_KEY;
       const apiSecret = process.env.COINBASE_API_SECRET;
       
@@ -140,18 +146,26 @@ class DataRetriever {
         throw new Error('Coinbase API credentials not configured');
       }
       
-      // Placeholder for real Coinbase account data
+      // For real Coinbase trading, we would fetch:
+      // 1. Account balances
+      // 2. Current positions
+      // 3. Transaction history
+      // 4. Realized/unrealized P&L
+      
+      // This is a placeholder implementation
+      // In real implementation, you would use Coinbase Advanced Trade API
       this.accountData = {
         balance: 1000,
         positions: [],
         pnl: 0,
         totalValue: 1000,
         lastUpdate: new Date(),
-        paper: false
+        paper: false,
+        apiError: 'Real Coinbase API integration not yet implemented'
       };
       
       await this.db.saveAccountData(this.accountData);
-      this.logger.info('Coinbase account data fetched successfully');
+      this.logger.info('Coinbase account data placeholder created');
     } catch (error) {
       this.logger.error('Failed to fetch Coinbase account data:', error);
       throw error;
@@ -207,9 +221,12 @@ class DataRetriever {
       price: price,
       timestamp: new Date(),
       volume: this.generateMockVolume(symbol, price),
-      high: price * (1 + Math.random() * 0.02),
-      low: price * (1 - Math.random() * 0.02),
-      open: price * (1 + (Math.random() - 0.5) * 0.01)
+      bid: price * 0.999,
+      ask: price * 1.001,
+      high: price * 1.02,
+      low: price * 0.98,
+      open: price * 1.01,
+      change24h: (Math.random() - 0.5) * 10
     };
   }
 
@@ -227,6 +244,58 @@ class DataRetriever {
 
   getTradingMode() {
     return this.tradingMode;
+  }
+
+  // New method to get Coinbase-specific metrics
+  async getCoinbaseMetrics() {
+    try {
+      const metrics = {
+        // Available from Coinbase API
+        currentPrices: {},
+        volume24h: {},
+        bidAskSpread: {},
+        
+        // Not available from public Coinbase API (will show API Error)
+        historicalData: 'API Error',
+        advancedAnalytics: 'API Error',
+        detailedVolume: 'API Error',
+        priceHistory: 'API Error'
+      };
+
+      // Fetch current prices and basic data
+      for (const symbol of ['BTC', 'ETH']) {
+        try {
+          const spotResponse = await axios.get(`https://api.coinbase.com/v2/prices/${symbol}-USD/spot`);
+          const tickerResponse = await axios.get(`https://api.exchange.coinbase.com/products/${symbol}-USD/ticker`);
+          
+          if (spotResponse.data && tickerResponse.data) {
+            const price = parseFloat(spotResponse.data.data.amount);
+            const ticker = tickerResponse.data;
+            
+            metrics.currentPrices[symbol] = price;
+            metrics.volume24h[symbol] = parseFloat(ticker.volume) || 'API Error';
+            metrics.bidAskSpread[symbol] = parseFloat(ticker.ask) - parseFloat(ticker.bid);
+          }
+        } catch (error) {
+          metrics.currentPrices[symbol] = 'API Error';
+          metrics.volume24h[symbol] = 'API Error';
+          metrics.bidAskSpread[symbol] = 'API Error';
+        }
+      }
+
+      return metrics;
+    } catch (error) {
+      this.logger.error('Error fetching Coinbase metrics:', error);
+      return {
+        currentPrices: { BTC: 'API Error', ETH: 'API Error' },
+        volume24h: { BTC: 'API Error', ETH: 'API Error' },
+        bidAskSpread: { BTC: 'API Error', ETH: 'API Error' },
+        historicalData: 'API Error',
+        advancedAnalytics: 'API Error',
+        detailedVolume: 'API Error',
+        priceHistory: 'API Error'
+      };
+    }
   }
 }
 
