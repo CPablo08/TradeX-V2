@@ -3,8 +3,8 @@
   border-radius: 8px;
   background: #1a1c23;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  overflow: visible;
-  min-height: 400px;
+  overflow: hidden;
+  height: 400px;
   display: flex;
   flex-direction: column;
 }
@@ -130,7 +130,6 @@
     flex: 1;
     position: relative;
     overflow: hidden;
-    min-height: 300px;
   }
 
 .code-editor {
