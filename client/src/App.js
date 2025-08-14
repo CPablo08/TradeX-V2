@@ -367,7 +367,7 @@ function App() {
       {/* Top Section */}
       <div className="top-section">
         <div className="branding">
-          <img src="/TradeX Logo.png" alt="TradeX" className="logo" />
+          <img src="/TradeX-Logo.png" alt="TradeX" className="logo" />
         </div>
         <div className="status-section">
           <span className="last-updated">{lastUpdated}</span>
