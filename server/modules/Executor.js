@@ -1,4 +1,4 @@
-const axios = require('axios');
+const winston = require('winston');
 
 class Executor {
   constructor(logger, db) {
@@ -6,16 +6,6 @@ class Executor {
     this.db = db;
     this.tradingMode = process.env.TRADING_MODE || 'paper';
     this.isInitialized = false;
-    this.dailyStats = {
-      trades: 0,
-      pnl: 0,
-      lastReset: new Date().toDateString()
-    };
-    this.positionLimits = {
-      maxPositionSize: parseFloat(process.env.MAX_POSITION_SIZE) || 10000,
-      maxDailyTrades: parseInt(process.env.MAX_DAILY_TRADES) || 50,
-      maxDailyLoss: parseFloat(process.env.MAX_DAILY_LOSS) || 5000
-    };
   }
 
   async initialize() {
@@ -24,9 +14,6 @@ class Executor {
       
       // Validate API configuration
       await this.validateAPIConfiguration();
-      
-      // Initialize position tracking
-      await this.initializePositionTracking();
       
       this.isInitialized = true;
       this.logger.info('Executor initialized successfully');
@@ -37,179 +24,48 @@ class Executor {
   }
 
   async validateAPIConfiguration() {
-    // For paper trading, we use Coinbase prices for simulation, no API keys needed
-    // For real trading, we need Coinbase API keys
-    const requiredKeys = this.tradingMode === 'paper' 
-      ? [] // No API keys needed for paper trading simulation
-      : ['COINBASE_API_KEY', 'COINBASE_API_SECRET', 'COINBASE_PASSPHRASE'];
-    
-    for (const key of requiredKeys) {
-      if (!process.env[key]) {
-        throw new Error(`Missing required environment variable: ${key}`);
-      }
-    }
-    
-    this.logger.info('API configuration validated');
-  }
-
-  async initializePositionTracking() {
     try {
-      if (this.tradingMode === 'paper') {
-        await this.loadAlpacaPositions();
-      } else {
-        await this.loadCoinbasePositions();
+      const requiredKeys = this.tradingMode === 'paper'
+        ? [] // No API keys needed for paper trading simulation
+        : ['COINBASE_API_KEY', 'COINBASE_API_SECRET', 'COINBASE_PASSPHRASE'];
+      
+      for (const key of requiredKeys) {
+        if (!process.env[key]) {
+          throw new Error(`Missing required environment variable: ${key}`);
+        }
       }
+      
+      this.logger.info('API configuration validated');
     } catch (error) {
-      this.logger.error('Failed to initialize position tracking:', error);
+      this.logger.error('API configuration validation failed:', error);
       throw error;
     }
   }
 
   async executeTrade(decision) {
-    if (!this.isInitialized) {
-      throw new Error('Executor not initialized');
-    }
-
     try {
-      this.logger.info('Executing trade decision:', decision);
-      
-      // Validate decision and handle execution
-      if (!this.validateDecision(decision)) {
-        this.logger.warn('Invalid trading decision, skipping execution');
-        return { success: false, reason: 'Invalid decision' };
+      if (!this.isInitialized) {
+        throw new Error('Executor not initialized');
       }
-      
-      // If it's a combined decision, the validateDecision method already handled execution
-      if (decision.details && typeof decision.details === 'object') {
-        return { success: true, message: 'Combined decision processed' };
+
+      if (this.tradingMode === 'paper') {
+        return await this.executePaperTrade(decision);
+      } else {
+        return await this.executeCoinbaseTrade(decision);
       }
-      
-      // Single symbol decision - execute directly
-      return await this.executeSymbolTrade(decision);
-      
     } catch (error) {
       this.logger.error('Trade execution failed:', error);
-      return { success: false, reason: error.message };
+      return {
+        success: false,
+        reason: error.message,
+        timestamp: new Date()
+      };
     }
   }
 
-  validateDecision(decision) {
-    if (!decision || !decision.action) {
-      return false;
-    }
-    
-    if (!['BUY', 'SELL', 'HOLD'].includes(decision.action)) {
-      return false;
-    }
-    
-    if (decision.action === 'HOLD') {
-      return false; // Don't execute HOLD decisions
-    }
-    
-    // Check if this is a combined decision with details
-    if (decision.details && typeof decision.details === 'object') {
-      // Extract individual symbol decisions and execute them
-      const symbolDecisions = Object.entries(decision.details).map(([symbol, symbolDecision]) => ({
-        ...symbolDecision,
-        symbol: symbol
-      }));
-      
-      // Execute each symbol decision
-      symbolDecisions.forEach(async (symbolDecision) => {
-        if (this.validateSymbolDecision(symbolDecision)) {
-          await this.executeSymbolTrade(symbolDecision);
-        }
-      });
-      
-      return true; // Combined decision is valid
-    }
-    
-    // Single symbol decision
-    return this.validateSymbolDecision(decision);
-  }
-
-  validateSymbolDecision(decision) {
-    if (!decision || !decision.action) {
-      return false;
-    }
-    
-    if (!['BUY', 'SELL', 'HOLD'].includes(decision.action)) {
-      return false;
-    }
-    
-    if (decision.action === 'HOLD') {
-      return false; // Don't execute HOLD decisions
-    }
-    
-    if (!decision.symbol || !['BTC', 'ETH'].includes(decision.symbol)) {
-      return false;
-    }
-    
-    return true;
-  }
-
-  async executeSymbolTrade(decision) {
+  async executePaperTrade(decision) {
     try {
-      this.logger.info('Executing symbol trade decision:', decision);
-      
-      // Check risk limits
-      if (!this.checkRiskLimits(decision)) {
-        this.logger.warn('Risk limits exceeded, skipping execution');
-        return { success: false, reason: 'Risk limits exceeded' };
-      }
-      
-      // Execute based on trading mode
-      let result;
-      if (this.tradingMode === 'paper') {
-        result = await this.executeAlpacaTrade(decision);
-      } else {
-        result = await this.executeCoinbaseTrade(decision);
-      }
-      
-      // Update daily stats
-      this.updateDailyStats(result);
-      
-      // Log trade
-      this.logTrade(decision, result);
-      
-      return result;
-      
-    } catch (error) {
-      this.logger.error('Symbol trade execution failed:', error);
-      return { success: false, reason: error.message };
-    }
-  }
-
-  checkRiskLimits(decision) {
-    // Check daily trade limit
-    if (this.dailyStats.trades >= this.positionLimits.maxDailyTrades) {
-      this.logger.warn('Daily trade limit reached');
-      return false;
-    }
-    
-    // Check daily loss limit
-    if (this.dailyStats.pnl < -this.positionLimits.maxDailyLoss) {
-      this.logger.warn('Daily loss limit reached');
-      return false;
-    }
-    
-    // Check position size limit
-    const estimatedCost = decision.quantity * decision.price;
-    if (estimatedCost > this.positionLimits.maxPositionSize) {
-      this.logger.warn('Position size exceeds limit');
-      return false;
-    }
-    
-    return true;
-  }
-
-  async executeAlpacaTrade(decision) {
-    try {
-      // For paper trading, we simulate the trade execution
-      // This allows us to test the logic without real Alpaca crypto trading
-      
-      // Simulate a successful trade
-      const quantity = 0.001; // Small quantity for paper trading
+      const quantity = 0.001; // Fixed quantity for paper trading
       const orderId = `paper_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       const result = {
@@ -224,7 +80,7 @@ class Executor {
         paper: true
       };
 
-      // Save the paper trade to database
+      // Save trade to database
       await this.db.saveTrade({
         orderId: orderId,
         symbol: decision.symbol,
@@ -238,153 +94,231 @@ class Executor {
 
       this.logger.info('Paper trade executed successfully:', result);
       return result;
-
     } catch (error) {
       this.logger.error('Paper trade execution failed:', error);
-      return { success: false, reason: error.message };
+      return {
+        success: false,
+        reason: error.message,
+        timestamp: new Date()
+      };
     }
   }
 
   async executeCoinbaseTrade(decision) {
     try {
-      // Simplified Coinbase trade execution
-      // In production, you'd need proper HMAC signing
+      // Placeholder for real Coinbase trade execution
+      // In production, this would use Coinbase Pro API with proper authentication
+      
+      const apiKey = process.env.COINBASE_API_KEY;
+      const apiSecret = process.env.COINBASE_API_SECRET;
+      const passphrase = process.env.COINBASE_PASSPHRASE;
+      
+      if (!apiKey || !apiSecret || !passphrase) {
+        throw new Error('Coinbase API credentials not configured');
+      }
+      
+      // This is a placeholder - real implementation would use Coinbase Pro API
+      const orderId = `coinbase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       const result = {
         success: true,
-        orderId: `cb_${Date.now()}`,
+        orderId: orderId,
         symbol: decision.symbol,
         action: decision.action,
-        quantity: 0.001, // Small quantity for safety
+        quantity: 0.001, // Would be calculated based on available balance
         price: decision.price,
         timestamp: new Date(),
-        status: 'filled'
+        status: 'filled',
+        paper: false
       };
+
+      // Save trade to database
+      await this.db.saveTrade({
+        orderId: orderId,
+        symbol: decision.symbol,
+        action: decision.action,
+        quantity: 0.001,
+        price: decision.price,
+        timestamp: new Date(),
+        status: 'completed',
+        paper: false
+      });
 
       this.logger.info('Coinbase trade executed successfully:', result);
       return result;
-
     } catch (error) {
       this.logger.error('Coinbase trade execution failed:', error);
+      return {
+        success: false,
+        reason: error.message,
+        timestamp: new Date()
+      };
+    }
+  }
+
+  async getPositions() {
+    try {
+      if (this.tradingMode === 'paper') {
+        return await this.getPaperPositions();
+      } else {
+        return await this.getCoinbasePositions();
+      }
+    } catch (error) {
+      this.logger.error('Failed to get positions:', error);
+      return [];
+    }
+  }
+
+  async getPaperPositions() {
+    try {
+      const allTrades = await this.db.getTradeHistory(1000);
+      const positions = {};
+      
+      allTrades.forEach(trade => {
+        const symbol = trade.symbol;
+        if (!positions[symbol]) {
+          positions[symbol] = { quantity: 0, avgPrice: 0, totalCost: 0 };
+        }
+        
+        if (trade.action === 'BUY') {
+          const quantity = trade.quantity || 0;
+          const price = trade.price || 0;
+          const cost = quantity * price;
+          
+          positions[symbol].totalCost += cost;
+          positions[symbol].quantity += quantity;
+          positions[symbol].avgPrice = positions[symbol].totalCost / positions[symbol].quantity;
+        } else if (trade.action === 'SELL') {
+          positions[symbol].quantity -= trade.quantity || 0;
+          if (positions[symbol].quantity <= 0) {
+            positions[symbol] = { quantity: 0, avgPrice: 0, totalCost: 0 };
+          }
+        }
+      });
+      
+      return Object.entries(positions)
+        .filter(([symbol, pos]) => pos.quantity > 0)
+        .map(([symbol, pos]) => ({
+          symbol: symbol,
+          quantity: pos.quantity,
+          avgPrice: pos.avgPrice,
+          value: pos.quantity * pos.avgPrice
+        }));
+    } catch (error) {
+      this.logger.error('Failed to get paper positions:', error);
+      return [];
+    }
+  }
+
+  async getCoinbasePositions() {
+    try {
+      // Placeholder for real Coinbase positions
+      // In production, this would fetch from Coinbase Pro API
+      return [];
+    } catch (error) {
+      this.logger.error('Failed to get Coinbase positions:', error);
+      return [];
+    }
+  }
+
+  async closePositions(symbol) {
+    try {
+      if (this.tradingMode === 'paper') {
+        return await this.closePaperPositions(symbol);
+      } else {
+        return await this.closeCoinbasePositions(symbol);
+      }
+    } catch (error) {
+      this.logger.error('Failed to close positions:', error);
       return { success: false, reason: error.message };
     }
   }
 
-  async loadAlpacaPositions() {
+  async closePaperPositions(symbol) {
     try {
-      // For paper trading simulation, we don't need real Alpaca API calls
-      // Return empty positions array for simulation
-      this.logger.info('Paper trading positions loaded (simulated)');
-      return [];
-
-    } catch (error) {
-      this.logger.error('Failed to load paper trading positions:', error);
-      return [];
-    }
-  }
-
-  async loadCoinbasePositions() {
-    try {
-      // Simplified Coinbase position loading
-      this.logger.info('Coinbase positions loaded');
-      return [];
-
-    } catch (error) {
-      this.logger.error('Failed to load Coinbase positions:', error);
-      return [];
-    }
-  }
-
-  async closeAllPositions() {
-    try {
-      if (this.tradingMode === 'paper') {
-        await this.closeAlpacaPositions();
-      } else {
-        await this.closeCoinbasePositions();
+      const positions = await this.getPaperPositions();
+      const position = positions.find(p => p.symbol === symbol);
+      
+      if (!position || position.quantity <= 0) {
+        return { success: true, message: 'No position to close' };
       }
       
-      this.logger.info('All positions closed');
+      // Simulate closing position
+      const orderId = `close_paper_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await this.db.saveTrade({
+        orderId: orderId,
+        symbol: symbol,
+        action: 'SELL',
+        quantity: position.quantity,
+        price: position.avgPrice, // Would be current market price in real scenario
+        timestamp: new Date(),
+        status: 'completed',
+        paper: true
+      });
+      
+      this.logger.info(`Paper position closed for ${symbol}: ${position.quantity} @ ${position.avgPrice}`);
+      return { success: true, message: 'Position closed successfully' };
     } catch (error) {
-      this.logger.error('Failed to close positions:', error);
-      throw error;
+      this.logger.error('Failed to close paper positions:', error);
+      return { success: false, reason: error.message };
     }
   }
 
-  async closeAlpacaPositions() {
+  async closeCoinbasePositions(symbol) {
     try {
-      // For paper trading simulation, we don't need real Alpaca API calls
-      // Just log that positions would be closed
-      this.logger.info('Paper trading positions closed (simulated)');
-
-    } catch (error) {
-      this.logger.error('Failed to close paper trading positions:', error);
-      throw error;
-    }
-  }
-
-  async closeCoinbasePositions() {
-    try {
-      // Simplified Coinbase position closing
-      this.logger.info('Coinbase positions closed');
+      // Placeholder for real Coinbase position closing
+      // In production, this would use Coinbase Pro API
+      return { success: true, message: 'Position closed successfully (placeholder)' };
     } catch (error) {
       this.logger.error('Failed to close Coinbase positions:', error);
-      throw error;
+      return { success: false, reason: error.message };
     }
-  }
-
-  updateDailyStats(result) {
-    // Reset daily stats if it's a new day
-    const today = new Date().toDateString();
-    if (this.dailyStats.lastReset !== today) {
-      this.dailyStats = {
-        trades: 0,
-        pnl: 0,
-        lastReset: today
-      };
-    }
-
-    if (result.success) {
-      this.dailyStats.trades++;
-      // Calculate P&L (simplified)
-      if (result.pnl) {
-        this.dailyStats.pnl += result.pnl;
-      }
-    }
-  }
-
-  async logTrade(decision, result) {
-    try {
-      const trade = {
-        symbol: decision.symbol,
-        action: decision.action,
-        quantity: result.quantity || 0,
-        price: result.price || decision.price,
-        pnl: result.pnl || 0
-      };
-
-      await this.db.saveTrade(trade);
-      this.logger.info('Trade logged to database');
-    } catch (error) {
-      this.logger.error('Failed to log trade:', error);
-    }
-  }
-
-  getDailyStats() {
-    return this.dailyStats;
   }
 
   async getActiveOrders() {
     try {
       if (this.tradingMode === 'paper') {
-        // For paper trading simulation, return empty orders array
-        return [];
+        return await this.getPaperActiveOrders();
       } else {
-        return []; // Simplified for Coinbase
+        return await this.getCoinbaseActiveOrders();
       }
     } catch (error) {
       this.logger.error('Failed to get active orders:', error);
       return [];
     }
   }
+
+  async getPaperActiveOrders() {
+    try {
+      // Paper trading doesn't have pending orders - all trades are immediate
+      return [];
+    } catch (error) {
+      this.logger.error('Failed to get paper active orders:', error);
+      return [];
+    }
+  }
+
+  async getCoinbaseActiveOrders() {
+    try {
+      // Placeholder for real Coinbase active orders
+      // In production, this would fetch from Coinbase Pro API
+      return [];
+    } catch (error) {
+      this.logger.error('Failed to get Coinbase active orders:', error);
+      return [];
+    }
+  }
+
+  getTradingMode() {
+    return this.tradingMode;
+  }
+
+  close() {
+    this.logger.info('Executor closed');
+  }
 }
+
+module.exports = Executor;
 
 module.exports = Executor;

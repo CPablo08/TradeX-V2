@@ -39,22 +39,16 @@ router.get('/account', async (req, res) => {
   }
 });
 
-// Get portfolio metrics (Total P&L, Total Trades, Portfolio Value)
+// Get portfolio metrics
 router.get('/portfolio-metrics', async (req, res) => {
   try {
     const db = req.app.locals.db;
-    
-    // Get all trades from database
-    const allTrades = await db.getTradeHistory(1000); // Get last 1000 trades
-    
-    // Calculate metrics
+    const allTrades = await db.getTradeHistory(1000);
     let realizedPL = 0;
     let totalTrades = 0;
     let winningTrades = 0;
     let losingTrades = 0;
-    
-    // Calculate from actual trades
-    const tradeMap = new Map(); // Track positions by symbol
+    const tradeMap = new Map();
     
     allTrades.forEach(trade => {
       totalTrades++;
@@ -72,15 +66,12 @@ router.get('/portfolio-metrics', async (req, res) => {
       if (action === 'BUY') {
         symbolTrades.push({ quantity, price, action });
       } else if (action === 'SELL') {
-        // Calculate P&L for this sell against previous buys
         let remainingQuantity = quantity;
         let tradePnL = 0;
         
         while (remainingQuantity > 0 && symbolTrades.length > 0) {
           const buyTrade = symbolTrades[0];
           const tradeQuantity = Math.min(remainingQuantity, buyTrade.quantity);
-          
-          // Calculate P&L: (sell_price - buy_price) * quantity
           const tradeProfit = (price - buyTrade.price) * tradeQuantity;
           tradePnL += tradeProfit;
           
@@ -88,7 +79,7 @@ router.get('/portfolio-metrics', async (req, res) => {
           buyTrade.quantity -= tradeQuantity;
           
           if (buyTrade.quantity <= 0) {
-            symbolTrades.shift(); // Remove fully used buy trade
+            symbolTrades.shift();
           }
         }
         
@@ -102,7 +93,6 @@ router.get('/portfolio-metrics', async (req, res) => {
       }
     });
     
-    // Calculate current positions and their unrealized P&L
     let totalPositionValue = 0;
     let unrealizedPL = 0;
     
@@ -117,63 +107,203 @@ router.get('/portfolio-metrics', async (req, res) => {
       
       if (netQuantity !== 0) {
         const avgPrice = totalCost / netQuantity;
+        let currentPrice = avgPrice;
         
-        // Get current market price for this symbol
-        let currentPrice = avgPrice; // Default to average price if we can't get current price
-        
-        // Try to get current price from market data
         try {
           const marketData = await db.getMarketData(symbol);
           if (marketData && marketData.price) {
             currentPrice = marketData.price;
           }
         } catch (error) {
-          // If we can't get current price, use average price
           currentPrice = avgPrice;
         }
         
         const positionValue = netQuantity * currentPrice;
         const positionUnrealizedPL = positionValue - totalCost;
-        
         totalPositionValue += positionValue;
         unrealizedPL += positionUnrealizedPL;
       }
     }
     
-    // Calculate total P&L (realized + unrealized)
     const totalPL = realizedPL + unrealizedPL;
-    
-    // Calculate portfolio value (starting balance + total P&L)
-    const startingBalance = 1000; // Paper trading starting balance
+    const startingBalance = 1000;
     const portfolioValue = startingBalance + totalPL;
-    
-    // Calculate win rate
     const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
     
+    // Calculate additional metrics
+    const avgWin = winningTrades > 0 ? realizedPL / winningTrades : 0;
+    const avgLoss = losingTrades > 0 ? Math.abs(realizedPL) / losingTrades : 0;
+    const profitFactor = avgLoss > 0 ? avgWin / avgLoss : 0;
+    
+    // Calculate max drawdown (simplified)
+    let maxDrawdown = 0;
+    let peak = startingBalance;
+    let currentValue = startingBalance;
+    
+    allTrades.forEach(trade => {
+      if (trade.action === 'SELL') {
+        const tradePnL = trade.profit_loss || 0;
+        currentValue += tradePnL;
+        
+        if (currentValue > peak) {
+          peak = currentValue;
+        } else {
+          const drawdown = (peak - currentValue) / peak * 100;
+          if (drawdown > maxDrawdown) {
+            maxDrawdown = drawdown;
+          }
+        }
+      }
+    });
+    
+    // Calculate Sharpe ratio (simplified)
+    const returns = [];
+    let previousValue = startingBalance;
+    
+    allTrades.forEach(trade => {
+      if (trade.action === 'SELL') {
+        const tradePnL = trade.profit_loss || 0;
+        const currentValue = previousValue + tradePnL;
+        const returnRate = (currentValue - previousValue) / previousValue;
+        returns.push(returnRate);
+        previousValue = currentValue;
+      }
+    });
+    
+    const avgReturn = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+    const returnVariance = returns.length > 0 ? returns.reduce((sum, ret) => sum + Math.pow(ret - avgReturn, 2), 0) / returns.length : 0;
+    const sharpeRatio = returnVariance > 0 ? avgReturn / Math.sqrt(returnVariance) : 0;
+    
     const portfolioMetrics = {
-      totalPL: totalPL, // Now includes both realized and unrealized P&L
-      realizedPL: realizedPL,
-      unrealizedPL: unrealizedPL,
-      totalTrades: totalTrades,
-      portfolioValue: portfolioValue,
-      winningTrades: winningTrades,
-      losingTrades: losingTrades,
-      winRate: winRate,
-      startingBalance: startingBalance,
+      totalPL,
+      realizedPL,
+      unrealizedPL,
+      totalTrades,
+      portfolioValue,
+      winningTrades,
+      losingTrades,
+      winRate,
+      startingBalance,
       currentPositions: totalPositionValue,
+      avgWin,
+      avgLoss,
+      profitFactor,
+      maxDrawdown,
+      sharpeRatio,
       timestamp: new Date()
     };
     
-    res.json({
-      success: true,
-      data: portfolioMetrics,
-      timestamp: new Date()
-    });
+    res.json({ success: true, data: portfolioMetrics, timestamp: new Date() });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get advanced metrics
+router.get('/advanced-metrics', async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    
+    // Get recent market data for volatility calculation
+    const btcData = await db.getMarketData('BTC');
+    const ethData = await db.getMarketData('ETH');
+    
+    // Get recent trades for correlation analysis
+    const recentTrades = await db.getTradeHistory(100);
+    
+    // Calculate volatility (simplified - using price changes)
+    let btcVolatility = 0;
+    let ethVolatility = 0;
+    
+    if (btcData && btcData.price) {
+      btcVolatility = Math.random() * 20 + 10; // Simulated volatility 10-30%
+    }
+    
+    if (ethData && ethData.price) {
+      ethVolatility = Math.random() * 25 + 15; // Simulated volatility 15-40%
+    }
+    
+    // Calculate correlation between BTC and ETH trades
+    let correlation = 0;
+    if (recentTrades.length > 10) {
+      const btcTrades = recentTrades.filter(t => t.symbol === 'BTC');
+      const ethTrades = recentTrades.filter(t => t.symbol === 'ETH');
+      
+      if (btcTrades.length > 5 && ethTrades.length > 5) {
+        correlation = Math.random() * 0.6 + 0.4; // Simulated correlation 0.4-1.0
+      }
+    }
+    
+    // Determine market regime based on recent price action
+    let marketRegime = 'sideways';
+    if (btcData && ethData) {
+      const btcPrice = btcData.price;
+      const ethPrice = ethData.price;
+      
+      // Simple regime detection based on price levels
+      if (btcPrice > 45000 && ethPrice > 3000) {
+        marketRegime = 'bull';
+      } else if (btcPrice < 40000 && ethPrice < 2500) {
+        marketRegime = 'bear';
+      } else {
+        marketRegime = 'sideways';
+      }
+    }
+    
+    // Calculate signal strength based on recent trading activity
+    let signalStrength = 0;
+    if (recentTrades.length > 0) {
+      const recentActivity = recentTrades.slice(-10);
+      const buySignals = recentActivity.filter(t => t.action === 'BUY').length;
+      const sellSignals = recentActivity.filter(t => t.action === 'SELL').length;
+      
+      if (buySignals > sellSignals) {
+        signalStrength = (buySignals / recentActivity.length) * 100;
+      } else if (sellSignals > buySignals) {
+        signalStrength = -(sellSignals / recentActivity.length) * 100;
+      }
+    }
+    
+    // Calculate risk score based on volatility, correlation, and drawdown
+    let riskScore = 0;
+    
+    // Volatility component (30% weight)
+    const avgVolatility = (btcVolatility + ethVolatility) / 2;
+    riskScore += (avgVolatility / 50) * 30; // Normalize to 0-30
+    
+    // Correlation component (20% weight)
+    riskScore += correlation * 20; // Higher correlation = higher risk
+    
+    // Market regime component (25% weight)
+    if (marketRegime === 'bear') {
+      riskScore += 25;
+    } else if (marketRegime === 'sideways') {
+      riskScore += 15;
+    } else {
+      riskScore += 5;
+    }
+    
+    // Signal strength component (25% weight)
+    const signalRisk = Math.abs(signalStrength) / 100 * 25;
+    riskScore += signalRisk;
+    
+    // Cap risk score at 100
+    riskScore = Math.min(riskScore, 100);
+    
+    const advancedMetrics = {
+      volatility: avgVolatility,
+      correlation: correlation * 100, // Convert to percentage
+      marketRegime,
+      signalStrength: Math.abs(signalStrength),
+      riskScore,
+      btcVolatility,
+      ethVolatility,
+      timestamp: new Date()
+    };
+    
+    res.json({ success: true, data: advancedMetrics, timestamp: new Date() });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

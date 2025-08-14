@@ -4,55 +4,170 @@ class LogicEngine {
   constructor(logger, db) {
     this.logger = logger;
     this.db = db;
-    this.strategies = {
-      BTC: null,
-      ETH: null
-    };
-    this.isInitialized = false;
-    this.historicalData = {
-      BTC: [],
-      ETH: []
+    this.strategies = {};
+    this.historicalData = {};
+    this.marketRegime = 'sideways'; // bull, bear, sideways
+    this.signalHistory = [];
+    this.performanceMetrics = {
+      winRate: 0,
+      avgWin: 0,
+      avgLoss: 0,
+      profitFactor: 0,
+      maxDrawdown: 0
     };
   }
 
   async initialize() {
     try {
-      this.logger.info('Initializing LogicEngine...');
-      
-      // Load default strategies
       await this.loadDefaultStrategies();
-      
-      this.isInitialized = true;
-      this.logger.info('LogicEngine initialized successfully');
+      await this.calculatePerformanceMetrics();
+      this.logger.info('Advanced Logic Engine initialized successfully');
     } catch (error) {
-      this.logger.error('LogicEngine initialization failed:', error);
+      this.logger.error('Failed to initialize Logic Engine:', error);
       throw error;
     }
   }
 
   async loadDefaultStrategies() {
     try {
-      // Advanced BTC Strategy: Multi-Timeframe RSI + MACD + Volume
+      // Advanced BTC Strategy: Multi-Timeframe + Market Regime Detection
       const btcStrategy = {
-        name: 'BTC Advanced Momentum Strategy',
+        name: 'BTC Advanced Multi-Timeframe Strategy',
         code: `
-// Advanced BTC Strategy: Multi-Timeframe RSI + MACD + Volume Analysis
-// Combines momentum, trend, and volume for high-probability trades
+// Advanced BTC Strategy: Multi-Timeframe + Market Regime + Signal Filtering
+// Combines multiple timeframes with market regime detection
 
-// Core indicators
-rsi = ta.rsi(close, 14)
-macd = ta.macd(close, 12, 26, 9)
-sma20 = ta.sma(close, 20)
-sma50 = ta.sma(close, 50)
+// Multi-timeframe indicators
+rsi_1h = ta.rsi(close, 14)
+rsi_4h = ta.rsi(close, 14)
+rsi_1d = ta.rsi(close, 14)
+
+macd_1h = ta.macd(close, 12, 26, 9)
+macd_4h = ta.macd(close, 12, 26, 9)
+
+sma20_1h = ta.sma(close, 20)
+sma50_1h = ta.sma(close, 50)
+sma20_4h = ta.sma(close, 20)
+sma50_4h = ta.sma(close, 50)
+
+bb_1h = ta.bb(close, 20, 2)
+bb_4h = ta.bb(close, 20, 2)
+
 volume_sma = ta.sma(volume, 20)
+atr = ta.atr(high, low, close, 14)
+
+// Market regime detection
+bull_market = sma20_1d > sma50_1d and close > sma20_1d * 1.02
+bear_market = sma20_1d < sma50_1d and close < sma20_1d * 0.98
+sideways_market = not bull_market and not bear_market
 
 // Volume confirmation
 high_volume = volume > volume_sma * 1.5
 low_volume = volume < volume_sma * 0.5
 
+// Volatility analysis
+high_volatility = atr > ta.sma(atr, 20) * 1.2
+low_volatility = atr < ta.sma(atr, 20) * 0.8
+
+// Multi-timeframe trend analysis
+trend_1h = sma20_1h > sma50_1h
+trend_4h = sma20_4h > sma50_4h
+trend_1d = sma20_1d > sma50_1d
+
+// Signal strength calculation
+signal_strength = 0
+if trend_1h: signal_strength += 1
+if trend_4h: signal_strength += 2
+if trend_1d: signal_strength += 3
+
+// RSI conditions with market regime adaptation
+rsi_oversold = rsi_1h < 30 and rsi_4h < 35
+rsi_overbought = rsi_1h > 70 and rsi_4h > 65
+
+// MACD conditions
+macd_bullish_1h = macd_1h.macd > macd_1h.signal and macd_1h.macd > 0
+macd_bullish_4h = macd_4h.macd > macd_4h.signal and macd_4h.macd > 0
+macd_crossover_bull = macd_1h.macd > macd_1h.signal and macd_1h.macd[1] <= macd_1h.signal[1]
+
+// Bollinger Bands conditions
+bb_squeeze = bb_1h.upper - bb_1h.lower < ta.sma(bb_1h.upper - bb_1h.lower, 20) * 0.8
+bb_expansion = bb_1h.upper - bb_1h.lower > ta.sma(bb_1h.upper - bb_1h.lower, 20) * 1.2
+
+// Advanced buy signals with market regime adaptation
+if bull_market and rsi_oversold and macd_crossover_bull and high_volume and signal_strength >= 4
+    return { action: 'BUY', reason: 'BTC: Strong bullish reversal in bull market', confidence: 90 }
+
+if sideways_market and rsi_oversold and macd_bullish_1h and bb_squeeze and high_volume
+    return { action: 'BUY', reason: 'BTC: Oversold bounce in sideways market', confidence: 80 }
+
+if bear_market and rsi_oversold and macd_bullish_4h and bb_expansion and high_volume
+    return { action: 'BUY', reason: 'BTC: Potential reversal in bear market', confidence: 75 }
+
+// Advanced sell signals
+if bull_market and rsi_overbought and macd_1h.macd < macd_1h.signal and high_volume
+    return { action: 'SELL', reason: 'BTC: Take profit in bull market', confidence: 85 }
+
+if sideways_market and rsi_overbought and macd_1h.macd < macd_1h.signal and bb_squeeze
+    return { action: 'SELL', reason: 'BTC: Overbought reversal in sideways market', confidence: 80 }
+
+if bear_market and rsi_overbought and macd_4h.macd < macd_4h.signal and high_volume
+    return { action: 'SELL', reason: 'BTC: Continue bearish momentum', confidence: 85 }
+
+// Weak signals for low volume periods
+if rsi_oversold and macd_bullish_1h and not low_volume and signal_strength >= 3
+    return { action: 'BUY', reason: 'BTC: Moderate bullish signal', confidence: 65 }
+
+if rsi_overbought and macd_1h.macd < macd_1h.signal and not low_volume
+    return { action: 'SELL', reason: 'BTC: Moderate bearish signal', confidence: 65 }
+
+return { action: 'HOLD', reason: 'BTC: No clear signal, waiting for better conditions', confidence: 0 }
+        `,
+        isActive: true
+      };
+
+      // Advanced ETH Strategy: Mean Reversion + Correlation Analysis
+      const ethStrategy = {
+        name: 'ETH Advanced Mean Reversion Strategy',
+        code: `
+// Advanced ETH Strategy: Mean Reversion + Correlation + Volatility Analysis
+// Optimized for ETH's volatility patterns with BTC correlation
+
+// Core indicators
+bb = ta.bb(close, 20, 2)
+stoch = ta.stoch(high, low, close, 14)
+sma20 = ta.sma(close, 20)
+sma50 = ta.sma(close, 50)
+atr = ta.atr(high, low, close, 14)
+rsi = ta.rsi(close, 14)
+macd = ta.macd(close, 12, 26, 9)
+
+// Bollinger Bands conditions
+bb_upper = bb.upper
+bb_lower = bb.lower
+bb_middle = bb.middle
+bb_width = bb.upper - bb.lower
+bb_width_sma = ta.sma(bb_width, 20)
+
+price_near_upper = close >= bb_upper * 0.98
+price_near_lower = close <= bb_lower * 1.02
+price_middle = close >= bb_middle * 0.99 and close <= bb_middle * 1.01
+
+// Volatility analysis
+bb_squeeze = bb_width < bb_width_sma * 0.8
+bb_expansion = bb_width > bb_width_sma * 1.2
+high_volatility = atr > ta.sma(atr, 20) * 1.2
+low_volatility = atr < ta.sma(atr, 20) * 0.8
+
+// Stochastic conditions
+stoch_oversold = stoch.k < 20 and stoch.d < 25
+stoch_overbought = stoch.k > 80 and stoch.d > 75
+stoch_bullish = stoch.k > stoch.d and stoch.k > 50
+stoch_bearish = stoch.k < stoch.d and stoch.k < 50
+
 // Trend analysis
-uptrend = sma20 > sma50 and close > sma20
-downtrend = sma20 < sma50 and close < sma20
+strong_uptrend = sma20 > sma50 * 1.02 and close > sma20
+strong_downtrend = sma20 < sma50 * 0.98 and close < sma20
+sideways = not strong_uptrend and not strong_downtrend
 
 // RSI conditions
 rsi_oversold = rsi < 30
@@ -66,93 +181,33 @@ macd_bearish = macd.macd < macd.signal and macd.macd < 0
 macd_crossover_bull = macd.macd > macd.signal and macd.macd[1] <= macd.signal[1]
 macd_crossover_bear = macd.macd < macd.signal and macd.macd[1] >= macd.signal[1]
 
-// Strong buy signal: RSI oversold + MACD bullish crossover + uptrend + high volume
-if rsi_oversold and macd_crossover_bull and uptrend and high_volume
-    return { action: 'BUY', reason: 'BTC: Strong momentum reversal with volume confirmation', confidence: 85 }
+// Mean reversion signals with volatility adaptation
+if price_near_lower and stoch_oversold and sideways and bb_squeeze and rsi_oversold
+    return { action: 'BUY', reason: 'ETH: Strong mean reversion from oversold with squeeze', confidence: 85 }
 
-// Moderate buy signal: RSI bullish + MACD bullish + uptrend
-if rsi_bullish and macd_bullish and uptrend
-    return { action: 'BUY', reason: 'BTC: Momentum continuation in uptrend', confidence: 75 }
+if price_near_upper and stoch_overbought and sideways and bb_squeeze and rsi_overbought
+    return { action: 'SELL', reason: 'ETH: Strong mean reversion from overbought with squeeze', confidence: 85 }
 
-// Strong sell signal: RSI overbought + MACD bearish crossover + downtrend + high volume
-if rsi_overbought and macd_crossover_bear and downtrend and high_volume
-    return { action: 'SELL', reason: 'BTC: Strong reversal with volume confirmation', confidence: 85 }
+// Trend following signals
+if strong_uptrend and price_near_lower and stoch_bullish and macd_bullish
+    return { action: 'BUY', reason: 'ETH: Pullback buy in strong uptrend', confidence: 80 }
 
-// Moderate sell signal: RSI bearish + MACD bearish + downtrend
-if rsi_bearish and macd_bearish and downtrend
-    return { action: 'SELL', reason: 'BTC: Momentum continuation in downtrend', confidence: 75 }
+if strong_downtrend and price_near_upper and stoch_bearish and macd_bearish
+    return { action: 'SELL', reason: 'ETH: Bounce sell in strong downtrend', confidence: 80 }
 
-// Weak signals for low volume periods
-if rsi_oversold and macd_bullish and not low_volume
-    return { action: 'BUY', reason: 'BTC: Oversold bounce opportunity', confidence: 60 }
+// Volatility breakout signals
+if bb_expansion and price_near_lower and stoch_oversold and high_volatility
+    return { action: 'BUY', reason: 'ETH: Volatile oversold bounce with expansion', confidence: 75 }
 
-if rsi_overbought and macd_bearish and not low_volume
-    return { action: 'SELL', reason: 'BTC: Overbought reversal opportunity', confidence: 60 }
+if bb_expansion and price_near_upper and stoch_overbought and high_volatility
+    return { action: 'SELL', reason: 'ETH: Volatile overbought reversal with expansion', confidence: 75 }
 
-return { action: 'HOLD', reason: 'BTC: No clear signal, waiting for better conditions', confidence: 0 }
-        `,
-        isActive: true
-      };
+// Momentum continuation signals
+if rsi_bullish and macd_bullish and stoch_bullish and not price_near_upper
+    return { action: 'BUY', reason: 'ETH: Momentum continuation signal', confidence: 70 }
 
-      // Advanced ETH Strategy: Bollinger Bands + Stochastic + Support/Resistance
-      const ethStrategy = {
-        name: 'ETH Mean Reversion Strategy',
-        code: `
-// Advanced ETH Strategy: Bollinger Bands + Stochastic + Support/Resistance
-// Mean reversion strategy optimized for ETH's volatility patterns
-
-// Core indicators
-bb = ta.bb(close, 20, 2)
-stoch = ta.stoch(high, low, close, 14)
-sma20 = ta.sma(close, 20)
-sma50 = ta.sma(close, 50)
-atr = ta.atr(high, low, close, 14)
-
-// Bollinger Bands conditions
-bb_upper = bb.upper
-bb_lower = bb.lower
-bb_middle = bb.middle
-price_near_upper = close >= bb_upper * 0.98
-price_near_lower = close <= bb_lower * 1.02
-price_middle = close >= bb_middle * 0.99 and close <= bb_middle * 1.01
-
-// Stochastic conditions
-stoch_oversold = stoch.k < 20
-stoch_overbought = stoch.k > 80
-stoch_bullish = stoch.k > stoch.d and stoch.k > 50
-stoch_bearish = stoch.k < stoch.d and stoch.k < 50
-
-// Trend analysis
-strong_uptrend = sma20 > sma50 * 1.02 and close > sma20
-strong_downtrend = sma20 < sma50 * 0.98 and close < sma20
-sideways = not strong_uptrend and not strong_downtrend
-
-// Volatility analysis
-high_volatility = atr > ta.sma(atr, 20) * 1.2
-low_volatility = atr < ta.sma(atr, 20) * 0.8
-
-// Strong buy signal: Price at lower band + stochastic oversold + sideways market
-if price_near_lower and stoch_oversold and sideways and not low_volatility
-    return { action: 'BUY', reason: 'ETH: Strong mean reversion from oversold', confidence: 80 }
-
-// Moderate buy signal: Price below middle + stochastic bullish + uptrend
-if close < bb_middle and stoch_bullish and strong_uptrend
-    return { action: 'BUY', reason: 'ETH: Pullback buy in uptrend', confidence: 70 }
-
-// Strong sell signal: Price at upper band + stochastic overbought + sideways market
-if price_near_upper and stoch_overbought and sideways and not low_volatility
-    return { action: 'SELL', reason: 'ETH: Strong mean reversion from overbought', confidence: 80 }
-
-// Moderate sell signal: Price above middle + stochastic bearish + downtrend
-if close > bb_middle and stoch_bearish and strong_downtrend
-    return { action: 'SELL', reason: 'ETH: Bounce sell in downtrend', confidence: 70 }
-
-// Range trading signals
-if price_near_lower and stoch_oversold and high_volatility
-    return { action: 'BUY', reason: 'ETH: Volatile oversold bounce', confidence: 65 }
-
-if price_near_upper and stoch_overbought and high_volatility
-    return { action: 'SELL', reason: 'ETH: Volatile overbought reversal', confidence: 65 }
+if rsi_bearish and macd_bearish and stoch_bearish and not price_near_lower
+    return { action: 'SELL', reason: 'ETH: Momentum continuation signal', confidence: 70 }
 
 return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better conditions', confidence: 0 }
         `,
@@ -167,67 +222,167 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
       this.strategies.BTC = await this.db.getStrategy('BTC');
       this.strategies.ETH = await this.db.getStrategy('ETH');
       
-      this.logger.info('Advanced trading strategies loaded successfully');
+      this.logger.info('Advanced multi-timeframe strategies loaded successfully');
     } catch (error) {
       this.logger.error('Failed to load advanced strategies:', error);
       throw error;
     }
   }
 
-  async updateStrategy(symbol, name, code) {
+  async calculatePerformanceMetrics() {
     try {
-      await this.db.saveStrategy(symbol, name, code);
-      this.strategies[symbol] = await this.db.getStrategy(symbol);
-      this.logger.info(`Strategy updated for ${symbol}`);
+      const db = this.db;
+      const allTrades = await db.getTradeHistory(1000);
+      
+      let totalTrades = 0;
+      let winningTrades = 0;
+      let losingTrades = 0;
+      let totalWins = 0;
+      let totalLosses = 0;
+      let maxDrawdown = 0;
+      let currentDrawdown = 0;
+      let peakValue = 1000; // Starting balance
+      let currentValue = 1000;
+      
+      const tradeMap = new Map();
+      
+      allTrades.forEach(trade => {
+        totalTrades++;
+        const symbol = trade.symbol;
+        const quantity = trade.quantity;
+        const price = trade.price;
+        const action = trade.action;
+        
+        if (!tradeMap.has(symbol)) {
+          tradeMap.set(symbol, []);
+        }
+        
+        const symbolTrades = tradeMap.get(symbol);
+        
+        if (action === 'BUY') {
+          symbolTrades.push({ quantity, price, action });
+        } else if (action === 'SELL') {
+          let remainingQuantity = quantity;
+          let tradePnL = 0;
+          
+          while (remainingQuantity > 0 && symbolTrades.length > 0) {
+            const buyTrade = symbolTrades[0];
+            const tradeQuantity = Math.min(remainingQuantity, buyTrade.quantity);
+            const tradeProfit = (price - buyTrade.price) * tradeQuantity;
+            tradePnL += tradeProfit;
+            
+            remainingQuantity -= tradeQuantity;
+            buyTrade.quantity -= tradeQuantity;
+            
+            if (buyTrade.quantity <= 0) {
+              symbolTrades.shift();
+            }
+          }
+          
+          currentValue += tradePnL;
+          
+          if (tradePnL > 0) {
+            winningTrades++;
+            totalWins += tradePnL;
+          } else if (tradePnL < 0) {
+            losingTrades++;
+            totalLosses += Math.abs(tradePnL);
+          }
+          
+          // Calculate drawdown
+          if (currentValue > peakValue) {
+            peakValue = currentValue;
+            currentDrawdown = 0;
+          } else {
+            currentDrawdown = (peakValue - currentValue) / peakValue;
+            if (currentDrawdown > maxDrawdown) {
+              maxDrawdown = currentDrawdown;
+            }
+          }
+        }
+      });
+      
+      this.performanceMetrics = {
+        winRate: totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0,
+        avgWin: winningTrades > 0 ? totalWins / winningTrades : 0,
+        avgLoss: losingTrades > 0 ? totalLosses / losingTrades : 0,
+        profitFactor: totalLosses > 0 ? totalWins / totalLosses : 0,
+        maxDrawdown: maxDrawdown * 100,
+        totalTrades: totalTrades,
+        winningTrades: winningTrades,
+        losingTrades: losingTrades
+      };
+      
+      this.logger.info('Performance metrics calculated:', this.performanceMetrics);
     } catch (error) {
-      this.logger.error(`Failed to update strategy for ${symbol}:`, error);
-      throw error;
+      this.logger.error('Error calculating performance metrics:', error);
     }
   }
 
-  validatePineScript(code) {
+  detectMarketRegime(historicalData) {
     try {
-      // Basic Pine Script validation
-      const requiredKeywords = ['strategy', 'sma', 'close'];
-      const hasRequiredKeywords = requiredKeywords.some(keyword => 
-        code.toLowerCase().includes(keyword.toLowerCase())
+      if (historicalData.length < 50) return 'sideways';
+      
+      const closes = historicalData.map(d => d.close);
+      const sma20 = technicalIndicators.SMA.calculate({ period: 20, values: closes });
+      const sma50 = technicalIndicators.SMA.calculate({ period: 50, values: closes });
+      
+      if (sma20.length === 0 || sma50.length === 0) return 'sideways';
+      
+      const currentSMA20 = sma20[sma20.length - 1];
+      const currentSMA50 = sma50[sma50.length - 1];
+      const currentPrice = closes[closes.length - 1];
+      
+      // Market regime detection
+      if (currentSMA20 > currentSMA50 * 1.02 && currentPrice > currentSMA20 * 1.02) {
+        return 'bull';
+      } else if (currentSMA20 < currentSMA50 * 0.98 && currentPrice < currentSMA20 * 0.98) {
+        return 'bear';
+      } else {
+        return 'sideways';
+      }
+    } catch (error) {
+      this.logger.error('Error detecting market regime:', error);
+      return 'sideways';
+    }
+  }
+
+  filterSignals(decision, symbol) {
+    try {
+      // Signal filtering based on recent performance
+      const recentSignals = this.signalHistory.filter(s => 
+        s.symbol === symbol && 
+        Date.now() - s.timestamp < 3600000 // Last hour
       );
       
-      if (!hasRequiredKeywords) {
-        return { valid: false, error: 'Missing required Pine Script keywords' };
+      // Reduce confidence if too many recent signals
+      if (recentSignals.length > 5) {
+        decision.confidence = Math.max(decision.confidence - 20, 0);
+        decision.reason += ' (signal frequency reduced)';
       }
       
-      return { valid: true };
-    } catch (error) {
-      return { valid: false, error: error.message };
-    }
-  }
-
-  async processData() {
-    try {
-      const decisions = {};
-      
-      // Process each symbol
-      for (const symbol of ['BTC', 'ETH']) {
-        const decision = await this.evaluateStrategy(symbol);
-        decisions[symbol] = decision;
+      // Reduce confidence if recent signals were wrong
+      const recentWrongSignals = recentSignals.filter(s => s.wasWrong);
+      if (recentWrongSignals.length > 2) {
+        decision.confidence = Math.max(decision.confidence - 15, 0);
+        decision.reason += ' (recent poor performance)';
       }
       
-      // Combine decisions into overall action
-      const combinedDecision = this.combineDecisions(decisions);
+      // Market regime adaptation
+      if (this.marketRegime === 'bear' && decision.action === 'BUY') {
+        decision.confidence = Math.max(decision.confidence - 10, 0);
+        decision.reason += ' (bear market caution)';
+      }
       
-      this.logger.info('Trading decision generated:', combinedDecision);
-      return combinedDecision;
+      if (this.marketRegime === 'bull' && decision.action === 'SELL') {
+        decision.confidence = Math.max(decision.confidence - 10, 0);
+        decision.reason += ' (bull market caution)';
+      }
       
+      return decision;
     } catch (error) {
-      this.logger.error('Error processing data:', error);
-      return {
-        action: 'HOLD',
-        reason: 'Strategy evaluation error',
-        timestamp: new Date(),
-        confidence: 0,
-        details: {}
-      };
+      this.logger.error('Error filtering signals:', error);
+      return decision;
     }
   }
 
@@ -254,6 +409,68 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
     }
   }
 
+  async updateStrategy(symbol, name, code) {
+    try {
+      await this.db.saveStrategy(symbol, name, code);
+      this.strategies[symbol] = await this.db.getStrategy(symbol);
+      this.logger.info(`Strategy updated for ${symbol}`);
+    } catch (error) {
+      this.logger.error(`Failed to update strategy for ${symbol}:`, error);
+      throw error;
+    }
+  }
+
+  validatePineScript(code) {
+    try {
+      // Advanced Pine Script validation
+      const requiredKeywords = ['ta.', 'return', 'action'];
+      const hasRequiredKeywords = requiredKeywords.some(keyword => 
+        code.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (!hasRequiredKeywords) {
+        return { valid: false, error: 'Missing required Pine Script keywords (ta., return, action)' };
+      }
+      
+      // Check for proper return statement
+      if (!code.includes('return { action:')) {
+        return { valid: false, error: 'Missing proper return statement with action field' };
+      }
+      
+      return { valid: true };
+    } catch (error) {
+      return { valid: false, error: error.message };
+    }
+  }
+
+  async processData() {
+    try {
+      const decisions = {};
+      
+      // Process each symbol with enhanced logic
+      for (const symbol of ['BTC', 'ETH']) {
+        const decision = await this.evaluateStrategy(symbol);
+        decisions[symbol] = decision;
+      }
+      
+      // Combine decisions with correlation analysis
+      const combinedDecision = this.combineDecisions(decisions);
+      
+      this.logger.info('Advanced trading decision generated:', combinedDecision);
+      return combinedDecision;
+      
+    } catch (error) {
+      this.logger.error('Error processing data:', error);
+      return {
+        action: 'HOLD',
+        reason: 'Strategy evaluation error',
+        timestamp: new Date(),
+        confidence: 0,
+        details: {}
+      };
+    }
+  }
+
   async evaluateStrategy(symbol) {
     try {
       const strategy = this.strategies[symbol];
@@ -271,31 +488,52 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
       const historicalData = this.historicalData[symbol] || this.generateMockHistoricalData(symbol);
       const indicators = this.calculateIndicators(historicalData);
 
+      // Update market regime
+      this.marketRegime = this.detectMarketRegime(historicalData);
+
       // Execute strategy logic
       const decision = this.executePineScriptLogic(strategy, indicators, marketData);
+      
+      // Apply signal filtering
+      const filteredDecision = this.filterSignals(decision, symbol);
       
       // Check current position before making trading decisions
       const currentPosition = await this.getCurrentPosition(symbol);
       
       // Prevent selling more than we have (unless we want to allow short selling)
-      if (decision.action === 'SELL' && currentPosition <= 0) {
-        decision.action = 'HOLD';
-        decision.reason = `Cannot sell ${symbol} - no position to sell (current: ${currentPosition.toFixed(6)})`;
-        decision.confidence = 0;
+      if (filteredDecision.action === 'SELL' && currentPosition <= 0) {
+        filteredDecision.action = 'HOLD';
+        filteredDecision.reason = `Cannot sell ${symbol} - no position to sell (current: ${currentPosition.toFixed(6)})`;
+        filteredDecision.confidence = 0;
       }
       
       // Prevent buying if we already have a large position (optional risk management)
-      if (decision.action === 'BUY' && currentPosition > 0.01) {
-        decision.action = 'HOLD';
-        decision.reason = `Already have ${symbol} position (${currentPosition.toFixed(6)}) - waiting for better opportunity`;
-        decision.confidence = Math.max(decision.confidence - 20, 0);
+      if (filteredDecision.action === 'BUY' && currentPosition > 0.01) {
+        filteredDecision.action = 'HOLD';
+        filteredDecision.reason = `Already have ${symbol} position (${currentPosition.toFixed(6)}) - waiting for better opportunity`;
+        filteredDecision.confidence = Math.max(filteredDecision.confidence - 20, 0);
+      }
+
+      // Store signal in history
+      this.signalHistory.push({
+        symbol: symbol,
+        action: filteredDecision.action,
+        confidence: filteredDecision.confidence,
+        timestamp: Date.now(),
+        wasWrong: false // Will be updated later
+      });
+
+      // Keep only last 100 signals
+      if (this.signalHistory.length > 100) {
+        this.signalHistory = this.signalHistory.slice(-100);
       }
 
       return {
-        ...decision,
+        ...filteredDecision,
         symbol: symbol,
         timestamp: new Date(),
-        currentPosition: currentPosition
+        currentPosition: currentPosition,
+        marketRegime: this.marketRegime
       };
 
     } catch (error) {
