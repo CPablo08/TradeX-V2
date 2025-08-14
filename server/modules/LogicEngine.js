@@ -47,9 +47,11 @@ buySignal = fastMA > slowMA and fastMA[1] <= slowMA[1]
 sellSignal = fastMA < slowMA and fastMA[1] >= slowMA[1]
 
 if buySignal
-    strategy.entry("Long", strategy.long)
+    return { action: 'BUY', reason: 'Fast MA crossed above Slow MA', confidence: 75 }
 if sellSignal
-    strategy.close("Long")
+    return { action: 'SELL', reason: 'Fast MA crossed below Slow MA', confidence: 75 }
+
+return { action: 'HOLD', reason: 'No crossover signal', confidence: 0 }
         `,
         isActive: true
       };
@@ -331,21 +333,32 @@ if sellSignal
       
       let action = 'HOLD';
       let reason = 'Custom strategy';
-      let confidence = 0.6;
+      let confidence = 0;
       
       // Execute based on indicators mentioned in the code
       if (hasSMA && indicators.sma10 && indicators.sma20) {
         const sma10 = indicators.sma10[indicators.sma10.length - 1];
         const sma20 = indicators.sma20[indicators.sma20.length - 1];
+        const sma10Prev = indicators.sma10[indicators.sma10.length - 2];
+        const sma20Prev = indicators.sma20[indicators.sma20.length - 2];
         
-        if (sma10 > sma20) {
+        // Check for crossover signals
+        if (sma10 > sma20 && sma10Prev <= sma20Prev) {
+          action = 'BUY';
+          reason = 'Custom SMA Strategy: Fast MA crossed above Slow MA';
+          confidence = 75;
+        } else if (sma10 < sma20 && sma10Prev >= sma20Prev) {
+          action = 'SELL';
+          reason = 'Custom SMA Strategy: Fast MA crossed below Slow MA';
+          confidence = 75;
+        } else if (sma10 > sma20) {
           action = 'BUY';
           reason = 'Custom SMA Strategy: Fast MA above Slow MA';
-          confidence = 0.7;
+          confidence = 60;
         } else if (sma10 < sma20) {
           action = 'SELL';
           reason = 'Custom SMA Strategy: Fast MA below Slow MA';
-          confidence = 0.7;
+          confidence = 60;
         }
       }
       
@@ -355,25 +368,34 @@ if sellSignal
         if (rsi < 30) {
           action = 'BUY';
           reason = 'Custom RSI Strategy: Oversold condition';
-          confidence = 0.8;
+          confidence = 80;
         } else if (rsi > 70) {
           action = 'SELL';
           reason = 'Custom RSI Strategy: Overbought condition';
-          confidence = 0.8;
+          confidence = 80;
         }
       }
       
       if (hasMACD && indicators.macd) {
         const macd = indicators.macd[indicators.macd.length - 1];
+        const macdPrev = indicators.macd[indicators.macd.length - 2];
         
-        if (macd.MACD > macd.signal) {
+        if (macd.MACD > macd.signal && macdPrev.MACD <= macdPrev.signal) {
+          action = 'BUY';
+          reason = 'Custom MACD Strategy: MACD crossed above signal';
+          confidence = 75;
+        } else if (macd.MACD < macd.signal && macdPrev.MACD >= macdPrev.signal) {
+          action = 'SELL';
+          reason = 'Custom MACD Strategy: MACD crossed below signal';
+          confidence = 75;
+        } else if (macd.MACD > macd.signal) {
           action = 'BUY';
           reason = 'Custom MACD Strategy: MACD above signal';
-          confidence = 0.7;
+          confidence = 60;
         } else if (macd.MACD < macd.signal) {
           action = 'SELL';
           reason = 'Custom MACD Strategy: MACD below signal';
-          confidence = 0.7;
+          confidence = 60;
         }
       }
       
@@ -383,11 +405,11 @@ if sellSignal
         if (currentPrice < bb.lower) {
           action = 'BUY';
           reason = 'Custom Bollinger Strategy: Price below lower band';
-          confidence = 0.7;
+          confidence = 70;
         } else if (currentPrice > bb.upper) {
           action = 'SELL';
           reason = 'Custom Bollinger Strategy: Price above upper band';
-          confidence = 0.7;
+          confidence = 70;
         }
       }
       
