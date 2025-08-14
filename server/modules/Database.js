@@ -156,12 +156,12 @@ class Database {
   }
 
   // Market data methods
-  async saveMarketData(symbol, data) {
+  async saveMarketData(data) {
     const sql = `
       INSERT INTO market_data (symbol, price, change_24h, volume)
       VALUES (?, ?, ?, ?)
     `;
-    await this.run(sql, [symbol, data.price, data.change24h, data.volume]);
+    await this.run(sql, [data.symbol, data.price, data.change24h, data.volume]);
   }
 
   async getLatestMarketData(symbol) {

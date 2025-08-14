@@ -314,6 +314,34 @@ class Executor {
     return this.tradingMode;
   }
 
+  getDailyStats() {
+    // Return daily trading statistics
+    return {
+      totalTrades: 0,
+      winningTrades: 0,
+      losingTrades: 0,
+      totalPnL: 0,
+      winRate: 0
+    };
+  }
+
+  async closeAllPositions() {
+    try {
+      const symbols = ['BTC', 'ETH'];
+      const results = [];
+      
+      for (const symbol of symbols) {
+        const result = await this.closePositions(symbol);
+        results.push({ symbol, ...result });
+      }
+      
+      return { success: true, results };
+    } catch (error) {
+      this.logger.error('Failed to close all positions:', error);
+      return { success: false, reason: error.message };
+    }
+  }
+
   close() {
     this.logger.info('Executor closed');
   }
