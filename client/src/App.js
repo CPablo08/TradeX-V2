@@ -105,13 +105,7 @@ function App() {
     BTC: { price: 0, change24h: 0 },
     ETH: { price: 0, change24h: 0 }
   });
-  const [advancedMetrics, setAdvancedMetrics] = useState({
-    volatility: 0,
-    correlation: 0,
-    marketRegime: 'sideways',
-    signalStrength: 0,
-    riskScore: 0
-  });
+
   const [notifications, setNotifications] = useState([]);
   
 
@@ -273,17 +267,7 @@ function App() {
     }
   }, []);
 
-  const fetchAdvancedMetrics = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/data/advanced-metrics');
-      if (response.ok) {
-        const data = await response.json();
-        setAdvancedMetrics(data.data || {});
-      }
-    } catch (error) {
-      console.error('Error fetching advanced metrics:', error);
-    }
-  }, []);
+
 
 
 
@@ -320,7 +304,7 @@ function App() {
     fetchTradingLogs();
     fetchTradingStatus();
     fetchTradesHistory();
-    fetchAdvancedMetrics();
+
     fetchStrategies();
 
     
@@ -335,7 +319,7 @@ function App() {
     const logsInterval = setInterval(fetchTradingLogs, 5000); // 5 seconds
     const tradingStatusInterval = setInterval(fetchTradingStatus, 30000); // 30 seconds
     const tradesInterval = setInterval(fetchTradesHistory, 5000); // 5 seconds
-    const advancedMetricsInterval = setInterval(fetchAdvancedMetrics, 5000); // 5 seconds
+
 
 
     return () => {
@@ -346,10 +330,10 @@ function App() {
       clearInterval(logsInterval);
       clearInterval(tradingStatusInterval);
       clearInterval(tradesInterval);
-      clearInterval(advancedMetricsInterval);
+
 
     };
-  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchAdvancedMetrics, fetchStrategies, updateTimestamp, addNotification]);
+  }, [fetchSystemStatus, fetchPortfolioData, fetchTotalAssets, fetchTradingLogs, fetchTradingStatus, fetchTradesHistory, fetchStrategies, updateTimestamp, addNotification]);
 
   const startTrading = async () => {
     try {
@@ -631,33 +615,7 @@ function App() {
           </div>
         </div>
 
-        <div className="nav-section">
-          <h3>Advanced Metrics</h3>
-          <div className="metric-item">
-            <span>Volatility:</span>
-            <span>{formatPercentage(advancedMetrics?.volatility || 0)}</span>
-          </div>
-          <div className="metric-item">
-            <span>Correlation:</span>
-            <span>{formatPercentage(advancedMetrics?.correlation || 0)}</span>
-          </div>
-          <div className="metric-item">
-            <span>Market Regime:</span>
-            <span className={`regime ${advancedMetrics?.marketRegime || 'sideways'}`}>
-              {advancedMetrics?.marketRegime || 'sideways'}
-            </span>
-          </div>
-          <div className="metric-item">
-            <span>Signal Strength:</span>
-            <span>{formatPercentage(advancedMetrics?.signalStrength || 0)}</span>
-          </div>
-          <div className="metric-item">
-            <span>Risk Score:</span>
-            <span className={`risk ${(advancedMetrics?.riskScore || 0) > 70 ? 'high' : (advancedMetrics?.riskScore || 0) > 40 ? 'medium' : 'low'}`}>
-              {formatPercentage(advancedMetrics?.riskScore || 0)}
-            </span>
-          </div>
-        </div>
+
       </div>
 
       {/* Main Content */}
