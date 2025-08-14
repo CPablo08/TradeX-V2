@@ -414,19 +414,6 @@ function App() {
 
   return (
     <div className="App">
-      {/* Notifications */}
-      <div className="notifications">
-        {notifications.map(notification => (
-          <Notification
-            key={notification.id}
-            type={notification.type}
-            title={notification.title}
-            message={notification.message}
-            onClose={() => removeNotification(notification.id)}
-          />
-        ))}
-      </div>
-      
       {/* Sidebar */}
       <div className="sidebar">
         <div className="logo">
@@ -459,11 +446,11 @@ function App() {
           <h3>Market Data</h3>
           <div className="market-item">
             <span>BTC:</span>
-            <span className="price">${marketData.BTC.price.toFixed(2)}</span>
+            <span className="price">${marketData.BTC.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
           <div className="market-item">
             <span>ETH:</span>
-            <span className="price">${marketData.ETH.price.toFixed(2)}</span>
+            <span className="price">${marketData.ETH.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
         </div>
 
@@ -519,6 +506,28 @@ function App() {
             {tradingStatus}
           </div>
         )}
+
+        {/* Program Updates Panel */}
+        <div className="notifications-panel">
+          <h3>Program Updates</h3>
+          <div className="notifications">
+            {notifications.length > 0 ? (
+              notifications.map(notification => (
+                <Notification
+                  key={notification.id}
+                  type={notification.type}
+                  title={notification.title}
+                  message={notification.message}
+                  onClose={() => removeNotification(notification.id)}
+                />
+              ))
+            ) : (
+              <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', textAlign: 'center', padding: '10px' }}>
+                No recent updates
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Summary Cards */}
         <div className="summary-cards">
