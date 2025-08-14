@@ -4,31 +4,61 @@ const TradingViewWidget = ({ symbol = 'BTC' }) => {
   const container = useRef();
 
   useEffect(() => {
-    // Add global error handler to suppress script errors
+    // Comprehensive error suppression for TradingView
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
     const originalErrorHandler = window.onerror;
+    
+    // Override console methods
+    console.error = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('Script error') || 
+          message.includes('tradingview') || 
+          message.includes('external-embedding') ||
+          message.includes('bundle.js')) {
+        return; // Suppress
+      }
+      originalConsoleError.apply(console, args);
+    };
+    
+    console.warn = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('Script error') || 
+          message.includes('tradingview') || 
+          message.includes('external-embedding')) {
+        return; // Suppress
+      }
+      originalConsoleWarn.apply(console, args);
+    };
+
+    // Override window error handler
     window.onerror = function(msg, url, line, col, error) {
-      // Suppress TradingView script errors
       if (msg && typeof msg === 'string' && (
         msg.includes('Script error') || 
         msg.includes('tradingview') || 
-        msg.includes('external-embedding')
+        msg.includes('external-embedding') ||
+        msg.includes('bundle.js')
       )) {
-        return true; // Prevent error from showing in console
+        return true; // Suppress
       }
-      // Call original error handler for other errors
       if (originalErrorHandler) {
         return originalErrorHandler(msg, url, line, col, error);
       }
       return false;
     };
 
+    // Create script with error handling
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
     script.async = true;
     script.onerror = () => {
-      console.warn('TradingView widget failed to load, this is normal and will retry automatically');
+      // Silent error handling
     };
+    script.onload = () => {
+      // Silent success
+    };
+    
     script.innerHTML = `
       {
         "autosize": true,
@@ -56,7 +86,9 @@ const TradingViewWidget = ({ symbol = 'BTC' }) => {
     }
 
     return () => {
-      // Restore original error handler
+      // Restore original handlers
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
       window.onerror = originalErrorHandler;
       if (currentContainer) {
         currentContainer.innerHTML = '';

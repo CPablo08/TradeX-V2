@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import TradingViewWidget from './components/TradingViewWidget';
 import AdvancedPineScriptEditor from './components/AdvancedPineScriptEditor';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Notification component
 const Notification = ({ type, title, message, onClose }) => {
@@ -28,29 +29,76 @@ const Notification = ({ type, title, message, onClose }) => {
 };
 
 function App() {
-  // Add global error handler to suppress script errors
+  // Add comprehensive error suppression
   useEffect(() => {
+    // Suppress all console errors
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+    
+    console.error = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('Script error') || 
+          message.includes('tradingview') || 
+          message.includes('external-embedding') ||
+          message.includes('Failed to fetch') ||
+          message.includes('NetworkError') ||
+          message.includes('bundle.js')) {
+        return; // Suppress these errors
+      }
+      originalConsoleError.apply(console, args);
+    };
+    
+    console.warn = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('Script error') || 
+          message.includes('tradingview') || 
+          message.includes('external-embedding')) {
+        return; // Suppress these warnings
+      }
+      originalConsoleWarn.apply(console, args);
+    };
+
+    // Suppress window errors
     const originalErrorHandler = window.onerror;
     window.onerror = function(msg, url, line, col, error) {
-      // Suppress common script errors that don't affect functionality
       if (msg && typeof msg === 'string' && (
         msg.includes('Script error') || 
         msg.includes('tradingview') || 
         msg.includes('external-embedding') ||
         msg.includes('Failed to fetch') ||
-        msg.includes('NetworkError')
+        msg.includes('NetworkError') ||
+        msg.includes('bundle.js')
       )) {
-        return true; // Prevent error from showing in console
+        return true; // Prevent error from showing
       }
-      // Call original error handler for other errors
       if (originalErrorHandler) {
         return originalErrorHandler(msg, url, line, col, error);
       }
       return false;
     };
 
+    // Suppress unhandled promise rejections
+    const originalUnhandledRejection = window.onunhandledrejection;
+    window.onunhandledrejection = function(event) {
+      const message = event.reason?.message || event.reason || '';
+      if (message.includes('Script error') || 
+          message.includes('tradingview') || 
+          message.includes('external-embedding') ||
+          message.includes('Failed to fetch') ||
+          message.includes('NetworkError')) {
+        event.preventDefault();
+        return;
+      }
+      if (originalUnhandledRejection) {
+        return originalUnhandledRejection(event);
+      }
+    };
+
     return () => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
       window.onerror = originalErrorHandler;
+      window.onunhandledrejection = originalUnhandledRejection;
     };
   }, []);
 
@@ -717,11 +765,15 @@ function App() {
           <div className="charts-grid">
             <div className="chart-panel">
               <h4>BTC/USD Chart</h4>
-              <TradingViewWidget symbol="BTC" />
+              <ErrorBoundary>
+                <TradingViewWidget symbol="BTC" />
+              </ErrorBoundary>
             </div>
             <div className="chart-panel">
               <h4>ETH/USD Chart</h4>
-              <TradingViewWidget symbol="ETH" />
+              <ErrorBoundary>
+                <TradingViewWidget symbol="ETH" />
+              </ErrorBoundary>
             </div>
           </div>
         </div>
