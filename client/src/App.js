@@ -447,11 +447,11 @@ function App() {
           <h3>Market Data</h3>
           <div className="market-item">
             <span>BTC:</span>
-            <span className="price">${marketData.BTC.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="price">${(marketData.BTC?.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
           <div className="market-item">
             <span>ETH:</span>
-            <span className="price">${marketData.ETH.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="price">${(marketData.ETH?.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
         </div>
 
@@ -459,26 +459,26 @@ function App() {
           <h3>Advanced Metrics</h3>
           <div className="metric-item">
             <span>Volatility:</span>
-            <span>{formatPercentage(advancedMetrics.volatility || 0)}</span>
+            <span>{formatPercentage(advancedMetrics?.volatility || 0)}</span>
           </div>
           <div className="metric-item">
             <span>Correlation:</span>
-            <span>{formatPercentage(advancedMetrics.correlation || 0)}</span>
+            <span>{formatPercentage(advancedMetrics?.correlation || 0)}</span>
           </div>
           <div className="metric-item">
             <span>Market Regime:</span>
-            <span className={`regime ${advancedMetrics.marketRegime || 'sideways'}`}>
-              {advancedMetrics.marketRegime || 'sideways'}
+            <span className={`regime ${advancedMetrics?.marketRegime || 'sideways'}`}>
+              {advancedMetrics?.marketRegime || 'sideways'}
             </span>
           </div>
           <div className="metric-item">
             <span>Signal Strength:</span>
-            <span>{formatPercentage(advancedMetrics.signalStrength || 0)}</span>
+            <span>{formatPercentage(advancedMetrics?.signalStrength || 0)}</span>
           </div>
           <div className="metric-item">
             <span>Risk Score:</span>
-            <span className={`risk ${advancedMetrics.riskScore > 70 ? 'high' : advancedMetrics.riskScore > 40 ? 'medium' : 'low'}`}>
-              {formatPercentage(advancedMetrics.riskScore || 0)}
+            <span className={`risk ${(advancedMetrics?.riskScore || 0) > 70 ? 'high' : (advancedMetrics?.riskScore || 0) > 40 ? 'medium' : 'low'}`}>
+              {formatPercentage(advancedMetrics?.riskScore || 0)}
             </span>
           </div>
         </div>
@@ -581,20 +581,20 @@ function App() {
             </div>
             <div className="metric-card">
               <div className="metric-label">Profit Factor</div>
-              <div className={`metric-value ${portfolioData.profitFactor === 'API Error' ? 'negative' : portfolioData.profitFactor > 1.5 ? 'positive' : portfolioData.profitFactor < 1.0 ? 'negative' : 'neutral'}`}>
-                {portfolioData.profitFactor === 'API Error' ? 'API Error' : portfolioData.profitFactor.toFixed(2)}
+              <div className={`metric-value ${portfolioData.profitFactor === 'API Error' ? 'negative' : (portfolioData.profitFactor || 0) > 1.5 ? 'positive' : (portfolioData.profitFactor || 0) < 1.0 ? 'negative' : 'neutral'}`}>
+                {portfolioData.profitFactor === 'API Error' ? 'API Error' : (portfolioData.profitFactor || 0).toFixed(2)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Max Drawdown</div>
-              <div className={`metric-value ${portfolioData.maxDrawdown === 'API Error' ? 'negative' : portfolioData.maxDrawdown < 10 ? 'positive' : portfolioData.maxDrawdown > 20 ? 'negative' : 'neutral'}`}>
-                {portfolioData.maxDrawdown === 'API Error' ? 'API Error' : formatPercentage(portfolioData.maxDrawdown)}
+              <div className={`metric-value ${portfolioData.maxDrawdown === 'API Error' ? 'negative' : (portfolioData.maxDrawdown || 0) < 10 ? 'positive' : (portfolioData.maxDrawdown || 0) > 20 ? 'negative' : 'neutral'}`}>
+                {portfolioData.maxDrawdown === 'API Error' ? 'API Error' : formatPercentage(portfolioData.maxDrawdown || 0)}
               </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Sharpe Ratio</div>
-              <div className={`metric-value ${portfolioData.sharpeRatio === 'API Error' ? 'negative' : portfolioData.sharpeRatio > 1.0 ? 'positive' : portfolioData.sharpeRatio < 0.5 ? 'negative' : 'neutral'}`}>
-                {portfolioData.sharpeRatio === 'API Error' ? 'API Error' : portfolioData.sharpeRatio.toFixed(2)}
+              <div className={`metric-value ${portfolioData.sharpeRatio === 'API Error' ? 'negative' : (portfolioData.sharpeRatio || 0) > 1.0 ? 'positive' : (portfolioData.sharpeRatio || 0) < 0.5 ? 'negative' : 'neutral'}`}>
+                {portfolioData.sharpeRatio === 'API Error' ? 'API Error' : (portfolioData.sharpeRatio || 0).toFixed(2)}
               </div>
             </div>
             <div className="metric-card">
@@ -611,8 +611,8 @@ function App() {
             </div>
             <div className="metric-card">
               <div className="metric-label">Risk/Reward</div>
-              <div className={`metric-value ${portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'negative' : portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss) > 2.0 ? 'positive' : (portfolioData.avgWin / portfolioData.avgLoss) < 1.5 ? 'negative' : 'neutral' : 'neutral'}`}>
-                {portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'API Error' : (portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss).toFixed(2) : 'N/A')}
+              <div className={`metric-value ${portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'negative' : (portfolioData.avgLoss || 0) > 0 ? ((portfolioData.avgWin || 0) / (portfolioData.avgLoss || 1)) > 2.0 ? 'positive' : ((portfolioData.avgWin || 0) / (portfolioData.avgLoss || 1)) < 1.5 ? 'negative' : 'neutral' : 'neutral'}`}>
+                {portfolioData.avgLoss === 'API Error' || portfolioData.avgWin === 'API Error' ? 'API Error' : ((portfolioData.avgLoss || 0) > 0 ? ((portfolioData.avgWin || 0) / (portfolioData.avgLoss || 1)).toFixed(2) : 'N/A')}
               </div>
             </div>
           </div>
