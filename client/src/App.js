@@ -2,6 +2,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import TradingViewWidget from './components/TradingViewWidget';
 
+// Notification component
+const Notification = ({ type, title, message, onClose }) => {
+  const getIcon = () => {
+    switch (type) {
+      case 'success': return '✅';
+      case 'error': return '❌';
+      case 'warning': return '⚠️';
+      case 'info': return 'ℹ️';
+      default: return '📢';
+    }
+  };
+
+  return (
+    <div className={`notification ${type}`}>
+      <div className="notification-icon">{getIcon()}</div>
+      <div className="notification-content">
+        <div className="notification-title">{title}</div>
+        <div className="notification-message">{message}</div>
+      </div>
+      <button className="notification-close" onClick={onClose}>×</button>
+    </div>
+  );
+};
+
 function App() {
   const [backendStatus, setBackendStatus] = useState('Checking...');
   const [systemStatus, setSystemStatus] = useState({});
@@ -42,8 +66,25 @@ function App() {
     signalStrength: 0,
     riskScore: 0
   });
+  const [notifications, setNotifications] = useState([]);
 
   const timestampRef = useRef();
+
+  // Notification functions
+  const addNotification = (type, title, message) => {
+    const id = Date.now();
+    const newNotification = { id, type, title, message };
+    setNotifications(prev => [...prev, newNotification]);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      removeNotification(id);
+    }, 5000);
+  };
+
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
 
   useEffect(() => {
     const updateTimestamp = () => {
@@ -64,6 +105,7 @@ function App() {
         }
       } catch (error) {
         setBackendStatus('🔴 Offline');
+        addNotification('error', 'Connection Error', 'Failed to connect to backend server');
       }
     };
 
@@ -76,6 +118,7 @@ function App() {
         }
       } catch (error) {
         console.error('Error fetching portfolio data:', error);
+        addNotification('error', 'Data Error', 'Failed to fetch portfolio metrics');
       }
     };
 
@@ -133,10 +176,14 @@ function App() {
               BTC: { price: btcPrice, change24h: 0 },
               ETH: { price: ethPrice, change24h: 0 }
             });
+            
+            // Add notification for successful API retrieval
+            addNotification('info', 'Market Data Updated', `BTC: $${btcPrice.toFixed(2)} | ETH: $${ethPrice.toFixed(2)}`);
           }
         }
       } catch (error) {
         console.error('Error fetching total assets:', error);
+        addNotification('error', 'Market Data Error', 'Failed to fetch latest prices from Coinbase');
       }
     };
 
@@ -197,6 +244,9 @@ function App() {
     fetchTradingStatus();
     fetchTradesHistory();
     fetchAdvancedMetrics();
+    
+    // Welcome notification
+    addNotification('info', 'TradeX Dashboard', 'Welcome! Dashboard is now active and monitoring your trading system.');
 
     // Set up intervals for real-time updates (5 seconds for all data)
     const timestampInterval = setInterval(updateTimestamp, 1000);
@@ -228,29 +278,18 @@ function App() {
       
       if (response.ok) {
         setIsTradingActive(true);
-        setTradingStatus('✅ Trading system is now active and making decisions!');
+        addNotification('success', 'Trading Started', 'Trading system is now active and making decisions!');
         
         // Immediately refresh data after starting
         fetchPortfolioData();
         fetchTotalAssets();
         fetchTradesHistory();
         fetchTradingLogs();
-        
-        // Clear status after 5 seconds
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 5000);
       } else {
-        setTradingStatus('❌ Failed to start trading system');
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 5000);
+        addNotification('error', 'Failed to Start Trading', 'Could not start trading system');
       }
     } catch (error) {
-      setTradingStatus('❌ Error starting trading system');
-      setTimeout(() => {
-        setTradingStatus('');
-      }, 5000);
+      addNotification('error', 'Failed to Start Trading', 'Error connecting to server');
     }
   };
 
@@ -262,28 +301,18 @@ function App() {
       
       if (response.ok) {
         setIsTradingActive(false);
-        setTradingStatus('⏹️ Trading system stopped');
+        addNotification('info', 'Trading Stopped', 'Trading system has been stopped');
         
         // Immediately refresh data after stopping
         fetchPortfolioData();
         fetchTotalAssets();
         fetchTradesHistory();
         fetchTradingLogs();
-        
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 5000);
       } else {
-        setTradingStatus('❌ Failed to stop trading system');
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 5000);
+        addNotification('error', 'Failed to Stop Trading', 'Could not stop trading system');
       }
     } catch (error) {
-      setTradingStatus('❌ Error stopping trading system');
-      setTimeout(() => {
-        setTradingStatus('');
-      }, 5000);
+      addNotification('error', 'Failed to Stop Trading', 'Error connecting to server');
     }
   };
 
@@ -294,28 +323,18 @@ function App() {
       });
       
       if (response.ok) {
-        setTradingStatus('🔄 Trading session restarted - all data cleared');
+        addNotification('success', 'Session Restarted', 'Trading session restarted - all data cleared');
         
         // Immediately refresh data after restart
         fetchPortfolioData();
         fetchTotalAssets();
         fetchTradesHistory();
         fetchTradingLogs();
-        
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 5000);
       } else {
-        setTradingStatus('❌ Failed to restart trading session');
-        setTimeout(() => {
-          setTradingStatus('');
-        }, 5000);
+        addNotification('error', 'Failed to Restart Session', 'Could not restart trading session');
       }
     } catch (error) {
-      setTradingStatus('❌ Error restarting trading session');
-      setTimeout(() => {
-        setTradingStatus('');
-      }, 5000);
+      addNotification('error', 'Failed to Restart Session', 'Error connecting to server');
     }
   };
 
@@ -356,21 +375,12 @@ function App() {
       });
       
       if (response.ok) {
-        setStrategyStatus(`✅ ${symbol} strategy updated successfully`);
-        setTimeout(() => {
-          setStrategyStatus('');
-        }, 3000);
+        addNotification('success', 'Strategy Updated', `${symbol} strategy updated successfully`);
       } else {
-        setStrategyStatus(`❌ Failed to update ${symbol} strategy`);
-        setTimeout(() => {
-          setStrategyStatus('');
-        }, 3000);
+        addNotification('error', 'Strategy Update Failed', `Failed to update ${symbol} strategy`);
       }
     } catch (error) {
-      setStrategyStatus(`❌ Error updating ${symbol} strategy`);
-      setTimeout(() => {
-        setStrategyStatus('');
-      }, 3000);
+      addNotification('error', 'Strategy Update Error', `Error updating ${symbol} strategy`);
     }
   };
 
@@ -398,6 +408,19 @@ function App() {
 
   return (
     <div className="App">
+      {/* Notifications */}
+      <div className="notifications">
+        {notifications.map(notification => (
+          <Notification
+            key={notification.id}
+            type={notification.type}
+            title={notification.title}
+            message={notification.message}
+            onClose={() => removeNotification(notification.id)}
+          />
+        ))}
+      </div>
+      
       {/* Sidebar */}
       <div className="sidebar">
         <div className="logo">
@@ -408,19 +431,21 @@ function App() {
           <h3>System Status</h3>
           <div className="status-item">
             <span>Backend:</span>
-            <span className="status-value">{backendStatus}</span>
+            <span className={`status-value ${backendStatus.includes('Online') ? 'online' : 'offline'}`}>
+              {backendStatus.includes('Online') ? '🟢 Online' : '🔴 Offline'}
+            </span>
           </div>
           <div className="status-item">
             <span>Frontend:</span>
-            <span className="status-value">🟢 Online</span>
+            <span className="status-value online">🟢 Online</span>
           </div>
           <div className="status-item">
             <span>Database:</span>
-            <span className="status-value">🟢 Online</span>
+            <span className="status-value online">🟢 Online</span>
           </div>
           <div className="status-item">
             <span>API:</span>
-            <span className="status-value">🟢 Online</span>
+            <span className="status-value online">🟢 Online</span>
           </div>
         </div>
 
@@ -532,27 +557,33 @@ function App() {
             </div>
             <div className="metric-card">
               <div className="metric-label">Profit Factor</div>
-              <div className="metric-value">{portfolioData.profitFactor.toFixed(2)}</div>
+              <div className={`metric-value ${portfolioData.profitFactor >= 1.5 ? 'positive' : portfolioData.profitFactor >= 1.0 ? 'positive' : 'negative'}`}>
+                {portfolioData.profitFactor.toFixed(2)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Max Drawdown</div>
-              <div className="metric-value negative">{formatPercentage(portfolioData.maxDrawdown)}</div>
+              <div className={`metric-value ${portfolioData.maxDrawdown <= 10 ? 'positive' : portfolioData.maxDrawdown <= 20 ? 'positive' : 'negative'}`}>
+                {formatPercentage(portfolioData.maxDrawdown)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Sharpe Ratio</div>
-              <div className="metric-value">{portfolioData.sharpeRatio.toFixed(2)}</div>
+              <div className={`metric-value ${portfolioData.sharpeRatio >= 1.0 ? 'positive' : portfolioData.sharpeRatio >= 0.5 ? 'positive' : 'negative'}`}>
+                {portfolioData.sharpeRatio.toFixed(2)}
+              </div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Winning Trades</div>
-              <div className="metric-value">{portfolioData.winningTrades || 0}</div>
+              <div className="metric-value positive">{portfolioData.winningTrades || 0}</div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Losing Trades</div>
-              <div className="metric-value">{portfolioData.losingTrades || 0}</div>
+              <div className="metric-value negative">{portfolioData.losingTrades || 0}</div>
             </div>
             <div className="metric-card">
               <div className="metric-label">Risk/Reward</div>
-              <div className="metric-value">
+              <div className={`metric-value ${portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss) >= 2.0 ? 'positive' : (portfolioData.avgWin / portfolioData.avgLoss) >= 1.5 ? 'positive' : 'negative' : 'positive'}`}>
                 {portfolioData.avgLoss > 0 ? (portfolioData.avgWin / portfolioData.avgLoss).toFixed(2) : 'N/A'}
               </div>
             </div>
