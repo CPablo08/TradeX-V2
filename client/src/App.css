@@ -7,7 +7,7 @@
 
 body {
   font-family: 'Courier New', monospace;
-  background-color: #1A1C1F;
+  background-color: #21232A;
   color: white;
   overflow-x: hidden;
 }
@@ -20,7 +20,7 @@ body {
 /* Sidebar */
 .sidebar {
   width: 280px;
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   padding: 20px;
   display: flex;
@@ -40,7 +40,7 @@ body {
 }
 
 .nav-section {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 15px;
@@ -68,11 +68,11 @@ body {
 
 .status-value {
   font-weight: bold;
-  color: #00ff88;
+  color: white;
 }
 
 .price {
-  color: #00ff88;
+  color: white;
   font-weight: bold;
 }
 
@@ -82,7 +82,7 @@ body {
 }
 
 .regime.bull {
-  color: #00ff88;
+  color: white;
 }
 
 .regime.bear {
@@ -98,7 +98,7 @@ body {
 }
 
 .risk.low {
-  color: #00ff88;
+  color: white;
 }
 
 .risk.medium {
@@ -131,7 +131,7 @@ body {
 .header-left h1 {
   font-size: 28px;
   margin-bottom: 5px;
-  color: #00ff88;
+  color: white;
 }
 
 .header-left p {
@@ -151,8 +151,8 @@ body {
 }
 
 .config-btn {
-  background-color: #00ff88;
-  color: #1A1C1F;
+  background-color: white;
+  color: #21232A;
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -163,12 +163,12 @@ body {
 }
 
 .config-btn:hover {
-  background-color: #00cc6a;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 /* Trading Status */
 .trading-status {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 15px;
@@ -193,7 +193,7 @@ body {
 }
 
 .card {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
@@ -203,7 +203,7 @@ body {
 
 .card:hover {
   transform: translateY(-2px);
-  border-color: #00ff88;
+  border-color: white;
 }
 
 .card-header {
@@ -221,7 +221,7 @@ body {
 }
 
 .card-value.positive {
-  color: #00ff88;
+  color: white;
 }
 
 .card-value.negative {
@@ -235,7 +235,7 @@ body {
 
 /* Advanced Performance Metrics */
 .advanced-metrics {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
@@ -244,7 +244,7 @@ body {
 .advanced-metrics h3 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #00ff88;
+  color: white;
 }
 
 .metrics-grid {
@@ -254,7 +254,7 @@ body {
 }
 
 .metric-card {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 15px;
@@ -275,7 +275,7 @@ body {
 }
 
 .metric-value.positive {
-  color: #00ff88;
+  color: white;
 }
 
 .metric-value.negative {
@@ -284,7 +284,7 @@ body {
 
 /* Charts Section */
 .charts-section {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
@@ -295,7 +295,7 @@ body {
 .charts-section h3 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #00ff88;
+  color: white;
 }
 
 .charts-grid {
@@ -306,7 +306,7 @@ body {
 }
 
 .chart-panel {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 15px;
@@ -318,7 +318,7 @@ body {
 .chart-panel h4 {
   font-size: 14px;
   margin-bottom: 10px;
-  color: #00ff88;
+  color: white;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -357,7 +357,7 @@ body {
 }
 
 .config-panel {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   width: 90%;
@@ -375,11 +375,11 @@ body {
   align-items: center;
   padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: #1A1C1F;
+  background-color: #21232A;
 }
 
 .config-header h2 {
-  color: #00ff88;
+  color: white;
   font-size: 24px;
 }
 
@@ -408,14 +408,14 @@ body {
 }
 
 .config-section {
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 20px;
 }
 
 .config-section h3 {
-  color: #00ff88;
+  color: white;
   margin-bottom: 15px;
   font-size: 18px;
 }
@@ -473,7 +473,7 @@ body {
 }
 
 input:checked + .slider {
-  background-color: #00ff88;
+  background-color: white;
 }
 
 input:checked + .slider:before {
@@ -505,12 +505,12 @@ input:checked + .slider:before {
 }
 
 .control-btn.start {
-  background-color: #00ff88;
-  color: #1A1C1F;
+  background-color: white;
+  color: #21232A;
 }
 
 .control-btn.start:hover {
-  background-color: #00cc6a;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .control-btn.stop {
@@ -524,7 +524,7 @@ input:checked + .slider:before {
 
 .control-btn.restart {
   background-color: #ffa500;
-  color: #1A1C1F;
+  color: #21232A;
 }
 
 .control-btn.restart:hover {
@@ -551,13 +551,13 @@ input:checked + .slider:before {
 }
 
 .strategy-editor h4 {
-  color: #00ff88;
+  color: white;
   font-size: 16px;
 }
 
 .strategy-editor textarea {
   height: 200px;
-  background-color: #1A1C1F;
+  background-color: #21232A;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 15px;
@@ -569,12 +569,12 @@ input:checked + .slider:before {
 
 .strategy-editor textarea:focus {
   outline: none;
-  border-color: #00ff88;
+  border-color: white;
 }
 
 .strategy-editor button {
-  background-color: #00ff88;
-  color: #1A1C1F;
+  background-color: white;
+  color: #21232A;
   border: none;
   padding: 10px;
   border-radius: 6px;
@@ -585,7 +585,7 @@ input:checked + .slider:before {
 }
 
 .strategy-editor button:hover {
-  background-color: #00cc6a;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 
 .strategy-status {
@@ -602,7 +602,7 @@ input:checked + .slider:before {
   overflow-y: auto;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  background-color: #1A1C1F;
+  background-color: #21232A;
 }
 
 .trade-entry {
@@ -632,8 +632,8 @@ input:checked + .slider:before {
 }
 
 .trade-action.buy {
-  background-color: #00ff88;
-  color: #1A1C1F;
+  background-color: white;
+  color: #21232A;
 }
 
 .trade-action.sell {
@@ -643,7 +643,7 @@ input:checked + .slider:before {
 
 .trade-symbol {
   font-weight: bold;
-  color: #00ff88;
+  color: white;
 }
 
 .trade-quantity {
@@ -673,7 +673,7 @@ input:checked + .slider:before {
   overflow-y: auto;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  background-color: #1A1C1F;
+  background-color: #21232A;
 }
 
 .log-entry {
@@ -704,13 +704,13 @@ input:checked + .slider:before {
 }
 
 .log-level.info {
-  background-color: #00ff88;
-  color: #1A1C1F;
+  background-color: white;
+  color: #21232A;
 }
 
 .log-level.warn {
   background-color: #ffa500;
-  color: #1A1C1F;
+  color: #21232A;
 }
 
 .log-level.error {
