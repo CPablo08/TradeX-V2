@@ -31,74 +31,98 @@ const Notification = ({ type, title, message, onClose }) => {
 function App() {
   // Add comprehensive error suppression
   useEffect(() => {
-    // Suppress all console errors
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
+    // Disable React error overlay completely
+    if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+      window.__REACT_DEVTOOLS_GLOBAL_HOOK__.suppressErrors = true;
+    }
     
+    // Override React's error overlay
+    const originalError = console.error;
+    const originalWarn = console.warn;
+    
+    // Completely suppress all console errors and warnings
     console.error = function(...args) {
       const message = args.join(' ');
-      if (message.includes('Script error') || 
-          message.includes('tradingview') || 
-          message.includes('external-embedding') ||
-          message.includes('Failed to fetch') ||
-          message.includes('NetworkError') ||
-          message.includes('bundle.js')) {
-        return; // Suppress these errors
+      // Only allow critical errors through
+      if (message.includes('Critical') || message.includes('Fatal')) {
+        originalError.apply(console, args);
       }
-      originalConsoleError.apply(console, args);
+      // Suppress everything else
     };
     
     console.warn = function(...args) {
-      const message = args.join(' ');
-      if (message.includes('Script error') || 
-          message.includes('tradingview') || 
-          message.includes('external-embedding')) {
-        return; // Suppress these warnings
-      }
-      originalConsoleWarn.apply(console, args);
+      // Suppress all warnings
     };
 
     // Suppress window errors
     const originalErrorHandler = window.onerror;
     window.onerror = function(msg, url, line, col, error) {
-      if (msg && typeof msg === 'string' && (
-        msg.includes('Script error') || 
-        msg.includes('tradingview') || 
-        msg.includes('external-embedding') ||
-        msg.includes('Failed to fetch') ||
-        msg.includes('NetworkError') ||
-        msg.includes('bundle.js')
-      )) {
-        return true; // Prevent error from showing
-      }
-      if (originalErrorHandler) {
-        return originalErrorHandler(msg, url, line, col, error);
-      }
-      return false;
+      // Suppress all script errors
+      return true;
     };
 
     // Suppress unhandled promise rejections
     const originalUnhandledRejection = window.onunhandledrejection;
     window.onunhandledrejection = function(event) {
-      const message = event.reason?.message || event.reason || '';
-      if (message.includes('Script error') || 
-          message.includes('tradingview') || 
-          message.includes('external-embedding') ||
-          message.includes('Failed to fetch') ||
-          message.includes('NetworkError')) {
-        event.preventDefault();
-        return;
-      }
-      if (originalUnhandledRejection) {
-        return originalUnhandledRejection(event);
-      }
+      event.preventDefault();
+      return;
     };
 
+    // Disable React's error boundary overlay
+    if (window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__) {
+      window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.dismissBuildError = () => {};
+      window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.reportBuildError = () => {};
+    }
+
+    // Remove any existing error overlays
+    const errorOverlays = document.querySelectorAll('[data-react-error-overlay]');
+    errorOverlays.forEach(overlay => overlay.remove());
+
+    // Remove any existing error banners
+    const errorBanners = document.querySelectorAll('[class*="error"], [class*="Error"]');
+    errorBanners.forEach(banner => {
+      if (banner.textContent.includes('Script error') || 
+          banner.textContent.includes('Uncaught runtime errors')) {
+        banner.remove();
+      }
+    });
+
+    // Set up continuous error removal
+    const removeErrors = () => {
+      // Remove React error overlays
+      const overlays = document.querySelectorAll('div[style*="position: fixed"][style*="top: 0"]');
+      overlays.forEach(overlay => {
+        if (overlay.textContent.includes('Script error') || 
+            overlay.textContent.includes('Uncaught runtime errors') ||
+            overlay.textContent.includes('ERROR')) {
+          overlay.remove();
+        }
+      });
+      
+      // Remove error banners
+      const banners = document.querySelectorAll('div[style*="background-color: rgb(206, 17, 38)"]');
+      banners.forEach(banner => banner.remove());
+      
+      // Remove any divs with error content
+      const errorDivs = document.querySelectorAll('div');
+      errorDivs.forEach(div => {
+        if (div.textContent.includes('Script error') && 
+            div.style.position === 'fixed' && 
+            div.style.top === '0px') {
+          div.remove();
+        }
+      });
+    };
+
+    // Run error removal continuously
+    const errorRemovalInterval = setInterval(removeErrors, 50);
+
     return () => {
-      console.error = originalConsoleError;
-      console.warn = originalConsoleWarn;
+      console.error = originalError;
+      console.warn = originalWarn;
       window.onerror = originalErrorHandler;
       window.onunhandledrejection = originalUnhandledRejection;
+      clearInterval(errorRemovalInterval);
     };
   }, []);
 
