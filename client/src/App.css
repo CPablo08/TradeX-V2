@@ -567,21 +567,9 @@ input:checked + .slider:before {
   font-size: 16px;
 }
 
-.strategy-editor textarea {
-  height: 200px;
-  background-color: #1a1c23;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 15px;
-  color: white;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  resize: vertical;
-}
-
-.strategy-editor textarea:focus {
-  outline: none;
-  border-color: white;
+.strategy-editor .pine-script-editor {
+  height: 300px;
+  margin-bottom: 10px;
 }
 
 .strategy-editor button {

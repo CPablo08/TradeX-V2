@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import TradingViewWidget from './components/TradingViewWidget';
+import AdvancedPineScriptEditor from './components/AdvancedPineScriptEditor';
 
 // Notification component
 const Notification = ({ type, title, message, onClose }) => {
@@ -387,6 +388,46 @@ function App() {
     }
   };
 
+  const validatePineScript = async (code) => {
+    // Basic Pine Script validation
+    if (!code.trim()) {
+      return { valid: true, error: null };
+    }
+
+    const errors = [];
+    
+    // Check for basic syntax
+    if (!code.includes('return')) {
+      errors.push('Missing return statement');
+    }
+    
+    if (!code.includes('action')) {
+      errors.push('Missing action field in return object');
+    }
+    
+    if (!code.includes('confidence')) {
+      errors.push('Missing confidence field in return object');
+    }
+    
+    // Check for common Pine Script patterns
+    const requiredPatterns = [
+      /ta\./,
+      /close/,
+      /high/,
+      /low/
+    ];
+    
+    const hasRequiredPatterns = requiredPatterns.some(pattern => pattern.test(code));
+    if (!hasRequiredPatterns) {
+      errors.push('Missing common Pine Script indicators or price data');
+    }
+
+    return {
+      valid: errors.length === 0,
+      error: errors.length > 0 ? errors.join(', ') : null
+    };
+  };
+
   const updateStrategy = async (symbol, code) => {
     try {
       const response = await fetch(`http://localhost:5000/api/system/update-strategy`, {
@@ -703,14 +744,17 @@ function App() {
 
               {/* Pine Script Strategies Section */}
               <div className="config-section">
-                <h3>Pine Script Strategies</h3>
+                <h3>Advanced Pine Script Strategies</h3>
                 <div className="strategy-editors">
                   <div className="strategy-editor">
                     <h4>BTC Strategy</h4>
-                    <textarea
+                    <AdvancedPineScriptEditor
                       value={btcStrategy}
-                      onChange={(e) => setBtcStrategy(e.target.value)}
+                      onChange={setBtcStrategy}
                       placeholder="Enter Pine Script strategy for BTC..."
+                      onSave={() => updateStrategy('BTC', btcStrategy)}
+                      onValidate={validatePineScript}
+                      symbol="BTC"
                     />
                     <button onClick={() => updateStrategy('BTC', btcStrategy)}>
                       Update BTC Strategy
@@ -718,10 +762,13 @@ function App() {
                   </div>
                   <div className="strategy-editor">
                     <h4>ETH Strategy</h4>
-                    <textarea
+                    <AdvancedPineScriptEditor
                       value={ethStrategy}
-                      onChange={(e) => setEthStrategy(e.target.value)}
+                      onChange={setEthStrategy}
                       placeholder="Enter Pine Script strategy for ETH..."
+                      onSave={() => updateStrategy('ETH', ethStrategy)}
+                      onValidate={validatePineScript}
+                      symbol="ETH"
                     />
                     <button onClick={() => updateStrategy('ETH', ethStrategy)}>
                       Update ETH Strategy
