@@ -14,11 +14,21 @@ class DataRetriever {
   async initialize() {
     try {
       this.logger.info('Initializing DataRetriever...');
-      await this.fetchMarketData();
-      await this.fetchAccountData();
+      await this.fetchInitialData();
       this.logger.info('DataRetriever initialized successfully');
     } catch (error) {
       this.logger.error('DataRetriever initialization failed:', error);
+      throw error;
+    }
+  }
+
+  async fetchInitialData() {
+    try {
+      await this.fetchMarketData();
+      await this.fetchAccountData();
+      this.logger.info('Initial data fetched successfully');
+    } catch (error) {
+      this.logger.error('Failed to fetch initial data:', error);
       throw error;
     }
   }

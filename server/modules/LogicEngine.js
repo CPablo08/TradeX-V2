@@ -938,7 +938,7 @@ return { action: 'HOLD', reason: 'ETH: No clear signal, waiting for better condi
     try {
       // Get market data from DataRetriever if available
       if (this.dataRetriever) {
-        return await this.dataRetriever.getMarketData(symbol);
+        return this.dataRetriever.getMarketData(symbol);
       }
       
       // Fallback to historical data or generate mock data
