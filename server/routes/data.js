@@ -48,7 +48,7 @@ router.get('/portfolio-metrics', async (req, res) => {
     const allTrades = await db.getTradeHistory(1000); // Get last 1000 trades
     
     // Calculate metrics
-    let totalPL = 0;
+    let realizedPL = 0;
     let totalTrades = 0;
     let winningTrades = 0;
     let losingTrades = 0;
@@ -92,7 +92,7 @@ router.get('/portfolio-metrics', async (req, res) => {
           }
         }
         
-        totalPL += tradePnL;
+        realizedPL += tradePnL;
         
         if (tradePnL > 0) {
           winningTrades++;
@@ -102,11 +102,12 @@ router.get('/portfolio-metrics', async (req, res) => {
       }
     });
     
-    // Calculate current positions and their value
+    // Calculate current positions and their unrealized P&L
     let totalPositionValue = 0;
+    let unrealizedPL = 0;
+    
     for (const [symbol, trades] of tradeMap) {
       let netQuantity = 0;
-      let avgPrice = 0;
       let totalCost = 0;
       
       trades.forEach(trade => {
@@ -115,23 +116,44 @@ router.get('/portfolio-metrics', async (req, res) => {
       });
       
       if (netQuantity !== 0) {
-        avgPrice = totalCost / netQuantity;
-        // For now, use a simple estimate of current value
-        // In a real implementation, you'd fetch current market prices
-        const currentPrice = avgPrice; // Placeholder - should be real market price
-        totalPositionValue += netQuantity * currentPrice;
+        const avgPrice = totalCost / netQuantity;
+        
+        // Get current market price for this symbol
+        let currentPrice = avgPrice; // Default to average price if we can't get current price
+        
+        // Try to get current price from market data
+        try {
+          const marketData = await db.getMarketData(symbol);
+          if (marketData && marketData.price) {
+            currentPrice = marketData.price;
+          }
+        } catch (error) {
+          // If we can't get current price, use average price
+          currentPrice = avgPrice;
+        }
+        
+        const positionValue = netQuantity * currentPrice;
+        const positionUnrealizedPL = positionValue - totalCost;
+        
+        totalPositionValue += positionValue;
+        unrealizedPL += positionUnrealizedPL;
       }
     }
     
-    // Calculate portfolio value (starting balance + total P&L + current positions)
+    // Calculate total P&L (realized + unrealized)
+    const totalPL = realizedPL + unrealizedPL;
+    
+    // Calculate portfolio value (starting balance + total P&L)
     const startingBalance = 1000; // Paper trading starting balance
-    const portfolioValue = startingBalance + totalPL + totalPositionValue;
+    const portfolioValue = startingBalance + totalPL;
     
     // Calculate win rate
     const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
     
     const portfolioMetrics = {
-      totalPL: totalPL,
+      totalPL: totalPL, // Now includes both realized and unrealized P&L
+      realizedPL: realizedPL,
+      unrealizedPL: unrealizedPL,
       totalTrades: totalTrades,
       portfolioValue: portfolioValue,
       winningTrades: winningTrades,
