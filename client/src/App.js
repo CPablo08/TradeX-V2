@@ -39,10 +39,10 @@ function App() {
     const timestampInterval = setInterval(updateTimestamp, 1000);
     const statusInterval = setInterval(fetchSystemStatus, 10000);
     const dataInterval = setInterval(fetchPortfolioData, 3000);
-    const assetsInterval = setInterval(fetchTotalAssets, 5000);
+    const assetsInterval = setInterval(fetchTotalAssets, 3000);
     const logsInterval = setInterval(fetchTradingLogs, 3000);
     const tradingStatusInterval = setInterval(fetchTradingStatus, 3000);
-    const tradesInterval = setInterval(fetchTradesHistory, 5000);
+    const tradesInterval = setInterval(fetchTradesHistory, 3000);
     
     return () => {
       clearInterval(timestampInterval);
