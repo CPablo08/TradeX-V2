@@ -4,31 +4,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    # Coinbase Advanced Trade API Configuration
-    # Load from official file if available, otherwise use fallback
-    def _load_coinbase_credentials():
-        try:
-            import json
-            # Try new key file first
-            with open('cdp_api_key (2).json', 'r') as f:
-                data = json.load(f)
-            return data['name'], data['privateKey']
-        except:
-            try:
-                # Fallback to old key file
-                with open('cdp_api_key (3).json', 'r') as f:
-                    data = json.load(f)
-                return data['name'], data['privateKey']
-            except:
-                # Final fallback to hardcoded values
-                return ("organizations/b2689c0a-e1e7-4be2-bfb8-2bfae3fc4457/apiKeys/48ff83f4-5aa9-41fe-ac80-9f4209921b4e",
-                        """-----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIA/W9rUU3BJsHpgolBqTIcvgq9qLUB/uBk2HtB7prgt+oAoGCCqGSM49
-AwEHoUQDQgAEGj95OfomV/p5Dl+zaeoBoQb3tB6BrHp1riQSjHQeF51NI+j84QRX
-XXuVZWAJNGQbYDP4Hl8Y4AXxeqPEcuhSyA==
------END EC PRIVATE KEY-----""")
+    # Alpaca Trading API Configuration
+    # Paper Trading (simulation) and Live Trading
+    ALPACA_API_KEY = os.getenv('ALPACA_API_KEY', 'your_alpaca_api_key_here')
+    ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY', 'your_alpaca_secret_key_here')
     
-    CB_API_KEY_NAME, CB_PRIVATE_KEY = _load_coinbase_credentials()
+    # Alpaca Paper Trading (simulation) - True for paper trading, False for live
+    ALPACA_PAPER_TRADING = True
+    
+    # Alpaca API Base URLs
+    ALPACA_PAPER_BASE_URL = "https://paper-api.alpaca.markets"  # Paper trading
+    ALPACA_LIVE_BASE_URL = "https://api.alpaca.markets"        # Live trading
+    ALPACA_DATA_BASE_URL = "https://data.alpaca.markets"       # Market data
+    
+    # Get the appropriate base URL based on paper trading setting
+    ALPACA_BASE_URL = ALPACA_PAPER_BASE_URL if ALPACA_PAPER_TRADING else ALPACA_LIVE_BASE_URL
     
     # Trading Parameters - Modified for crypto holdings
     TRADE_AMOUNT_USD = 100  # USD equivalent per trade
@@ -88,8 +78,11 @@ XXuVZWAJNGQbYDP4Hl8Y4AXxeqPEcuhSyA==
     LOG_ROTATION = "1 day"  # Rotate logs daily
     LOG_RETENTION = "7 days"  # Keep logs for 7 days
     
-    # Supported Assets
-    SUPPORTED_PAIRS = ['BTC-USD', 'ETH-USD']
+    # Supported Assets (Alpaca compatible symbols)
+    # For crypto: BTC/USD, ETH/USD (Alpaca supports crypto trading)
+    # For stocks: AAPL, GOOGL, MSFT, etc.
+    SUPPORTED_PAIRS = ['BTC/USD', 'ETH/USD']  # Crypto pairs
+    # SUPPORTED_PAIRS = ['AAPL', 'GOOGL', 'MSFT']  # Stock symbols (uncomment for stocks)
     
     # ML Model Paths
     MODEL_DIR = "models/"

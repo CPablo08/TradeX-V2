@@ -16,5 +16,5 @@ matplotlib==3.8.2
 seaborn==0.13.0
 plotly==5.17.0
 Pillow==10.0.0
-cryptography==41.0.7
+alpaca-trade-api==3.0.0
 
