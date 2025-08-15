@@ -4,13 +4,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    # Coinbase Advanced Trade API Configuration
-    CB_API_KEY_NAME = "organizations/b2689c0a-e1e7-4be2-bfb8-2bfae3fc4457/apiKeys/48ff83f4-5aa9-41fe-ac80-9f4209921b4e"
-    CB_PRIVATE_KEY = """-----BEGIN EC PRIVATE KEY-----
-MHcCAQEEIA/W9rUU3BJsHpgolBqTIcvgq9qLUB/uBk2HtB7prgt+oAoGCCqGSM49
-AwEHoUQDQgAEGj95OfomV/p5Dl+zaeoBoQb3tB6BrHp1riQSjHQeF51NI+j84QRX
-XXuVZWAJNGQbYDP4Hl8Y4AXxeqPEcuhSyA==
------END EC PRIVATE KEY-----"""
+                    # Coinbase Advanced Trade API Configuration
+                # Load from official file if available, otherwise use fallback
+                def _load_coinbase_credentials():
+                    try:
+                        import json
+                        with open('cdp_api_key (3).json', 'r') as f:
+                            data = json.load(f)
+                        return data['name'], data['privateKey']
+                    except:
+                        # Fallback to hardcoded values
+                        return ("organizations/b2689c0a-e1e7-4be2-bfb8-2bfae3fc4457/apiKeys/48ff83f4-5aa9-41fe-ac80-9f4209921b4e",
+                                """-----BEGIN EC PRIVATE KEY-----
+            MHcCAQEEIA/W9rUU3BJsHpgolBqTIcvgq9qLUB/uBk2HtB7prgt+oAoGCCqGSM49
+            AwEHoUQDQgAEGj95OfomV/p5Dl+zaeoBoQb3tB6BrHp1riQSjHQeF51NI+j84QRX
+            XXuVZWAJNGQbYDP4Hl8Y4AXxeqPEcuhSyA==
+            -----END EC PRIVATE KEY-----""")
+                
+                CB_API_KEY_NAME, CB_PRIVATE_KEY = _load_coinbase_credentials()
     
     # Trading Parameters - Modified for crypto holdings
     TRADE_AMOUNT_USD = 100  # USD equivalent per trade
