@@ -39,12 +39,12 @@ A sophisticated automated trading platform for Bitcoin (BTC) and Ethereum (ETH) 
 ### 🔄 Automated Trading
 - **24/7 Operation**: Designed for Jetson Orin Nano deployment
 - **Real-time Analysis**: Hourly market analysis and decision making
-- **Coinbase Integration**: Direct API connection for execution
+- **Binance Integration**: Direct API connection for execution
 - **Comprehensive Logging**: Detailed logs for monitoring and debugging
 - **Crypto Holdings Trading**: Works with your existing BTC/ETH holdings
 
 ### 📈 Backtesting Engine
-- **Historical Data Testing**: Tests with real Coinbase historical data
+- **Historical Data Testing**: Tests with real Binance historical data
 - **Complete System Simulation**: Tests entire trading logic including ML models
 - **Performance Analytics**: Comprehensive metrics and risk analysis
 - **Visual Reports**: Charts and graphs for performance analysis
@@ -55,8 +55,8 @@ A sophisticated automated trading platform for Bitcoin (BTC) and Ethereum (ETH) 
 ### Prerequisites
 - Python 3.8+
 - Jetson Orin Nano (recommended) or any Linux system
-- Coinbase Advanced Trade API credentials
-- Existing BTC/ETH holdings in Coinbase account
+- Binance API credentials
+- Existing crypto holdings in Binance account
 
 ### Setup
 
@@ -74,12 +74,12 @@ pip install -r requirements.txt
 3. **Set up environment variables**
 ```bash
 cp env_example.txt .env
-# Edit .env with your Coinbase API passphrase only
+# Edit .env with your Binance API credentials
 # API Key and Secret are already configured
 ```
 
-4. **Get Coinbase API credentials**
-- Go to https://pro.coinbase.com/profile/api
+4. **Get Binance API credentials**
+- Go to https://www.binance.com/en/my/settings/api-management
 - Create a new API key with trading permissions
 - Add only the passphrase to your `.env` file
 
@@ -101,7 +101,7 @@ This single command will:
 python main.py --mode train
 ```
 This will:
-- Collect historical data from Coinbase
+- Collect historical data from Binance
 - Calculate technical indicators and identify patterns
 - Train ensemble and LSTM models
 - Save models to `models/` directory
@@ -180,7 +180,7 @@ When you run `python start_tradex.py`, you'll see a live dashboard that updates 
 
 🌐 NETWORK STATUS:
    ✅ Network: CONNECTED
-   ✅ Coinbase API: CONNECTED
+   ✅ Binance API: CONNECTED
 
 📈 TRADING STATUS:
    🟡 Trading: RUNNING (Monitoring markets)
@@ -409,7 +409,7 @@ Logs are automatically rotated daily and kept for 7 days.
 
 ### 📊 Health Monitoring
 - **System Resources**: Monitors CPU, memory, and disk usage
-- **Network Status**: Checks connectivity to Coinbase API
+- **Network Status**: Checks connectivity to Binance API
 - **Process Health**: Verifies trading process is responsive
 - **Performance Metrics**: Tracks system performance over time
 
@@ -434,7 +434,7 @@ For issues and questions:
 2. **Test your strategy first**: `python main.py --mode backtest`
 3. Check the logs in `tradex.log` and `monitor.log`
 4. Review the configuration in `config.py`
-5. Ensure your Coinbase API credentials are correct
+5. Ensure your Binance API credentials are correct
 6. Verify your internet connection and API access
 7. Check that you have sufficient crypto balances
 8. Monitor system resources with `htop` and `nvidia-smi`

@@ -183,9 +183,9 @@ setup_environment() {
         print_status "Creating .env file..."
         cp env_example.txt .env
         
-        print_warning "Please edit .env file with your Coinbase API credentials:"
+        print_warning "Please edit .env file with your Binance API credentials:"
         echo "1. Open .env file: nano .env"
-        echo "2. Add your Coinbase API passphrase"
+        echo "2. Add your Binance API key and secret"
         echo "3. Save and exit (Ctrl+X, Y, Enter)"
         echo ""
         read -p "Press Enter when you've configured the .env file..."

@@ -4,21 +4,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    # Alpaca Trading API Configuration
-    # Paper Trading (simulation) and Live Trading
-    ALPACA_API_KEY = os.getenv('ALPACA_API_KEY', 'PKX9ZHH62ZAOCHHTJL9D')
-    ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY', 'RpDDdfWLtooio3SdQKmqAp5TKKhYK3ZTy9L8ohn7')
+    # Binance Trading API Configuration
+    # Paper Trading (Testnet) and Live Trading
+    BINANCE_API_KEY = os.getenv('BINANCE_API_KEY', 'your_binance_api_key_here')
+    BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY', 'your_binance_secret_key_here')
     
-    # Alpaca Paper Trading (simulation) - True for paper trading, False for live
-    ALPACA_PAPER_TRADING = True
+    # Binance Paper Trading (Testnet) - True for testnet, False for live
+    BINANCE_TESTNET = True
     
-    # Alpaca API Base URLs
-    ALPACA_PAPER_BASE_URL = "https://paper-api.alpaca.markets"  # Paper trading
-    ALPACA_LIVE_BASE_URL = "https://api.alpaca.markets"        # Live trading
-    ALPACA_DATA_BASE_URL = "https://data.alpaca.markets"       # Market data
+    # Binance API Base URLs
+    BINANCE_TESTNET_URL = "https://testnet.binance.vision"     # Testnet (paper trading)
+    BINANCE_LIVE_URL = "https://api.binance.com"               # Live trading
+    BINANCE_WS_TESTNET = "wss://testnet.binance.vision/ws"     # WebSocket testnet
+    BINANCE_WS_LIVE = "wss://stream.binance.com:9443/ws"       # WebSocket live
     
-    # Get the appropriate base URL based on paper trading setting
-    ALPACA_BASE_URL = ALPACA_PAPER_BASE_URL if ALPACA_PAPER_TRADING else ALPACA_LIVE_BASE_URL
+    # Get the appropriate base URL based on testnet setting
+    BINANCE_BASE_URL = BINANCE_TESTNET_URL if BINANCE_TESTNET else BINANCE_LIVE_URL
+    BINANCE_WS_URL = BINANCE_WS_TESTNET if BINANCE_TESTNET else BINANCE_WS_LIVE
     
     # Trading Parameters - Modified for crypto holdings
     TRADE_AMOUNT_USD = 100  # USD equivalent per trade
@@ -78,10 +80,10 @@ class Config:
     LOG_ROTATION = "1 day"  # Rotate logs daily
     LOG_RETENTION = "7 days"  # Keep logs for 7 days
     
-    # Supported Assets (Alpaca compatible symbols)
-    # For stocks: AAPL, GOOGL, MSFT, TSLA, AMZN, NVDA, etc.
-    SUPPORTED_PAIRS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA']  # Stock symbols
-    # SUPPORTED_PAIRS = ['BTC/USD', 'ETH/USD']  # Crypto pairs (uncomment for crypto)
+    # Supported Assets (Binance crypto pairs)
+    # Crypto trading pairs - Binance format
+    SUPPORTED_PAIRS = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'DOTUSDT']  # Crypto pairs
+    # Popular crypto pairs for trading
     
     # ML Model Paths
     MODEL_DIR = "models/"

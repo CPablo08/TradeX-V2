@@ -151,7 +151,7 @@ python3 main.py --mode report
 - Choose "Setup & Installation" → "Virtual Environment Setup"
 
 ### **"API connection failed"**
-- Check your Coinbase API credentials in `config.py`
+- Check your Binance API credentials in `config.py`
 - Verify internet connection
 - Use the menu system to test API connection
 

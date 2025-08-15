@@ -26,7 +26,7 @@ pip3 install --extra-index-url https://developer.download.nvidia.com/compute/red
 # Copy environment template
 cp env_example.txt .env
 
-# Edit .env file with your Coinbase passphrase
+# Edit .env file with your Binance API credentials
 nano .env
 ```
 

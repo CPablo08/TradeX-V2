@@ -142,7 +142,7 @@ def testing_menu():
         options = {
             "System Test": "Comprehensive test of all TradeX components",
             "Basic Test": "Quick functionality test",
-            "API Test": "Test Coinbase API connection",
+            "API Test": "Test Binance API connection",
             "Import Test": "Test all Python imports",
             "Configuration Test": "Verify configuration settings"
         }

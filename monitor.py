@@ -92,7 +92,7 @@ class TradeXMonitor:
             
             # Network
             try:
-                response = requests.get('https://api.coinbase.com', timeout=5)
+                response = requests.get(Config.BINANCE_BASE_URL, timeout=5)
                 if response.status_code != 200:
                     logger.warning("Network connectivity issues")
             except Exception as e:

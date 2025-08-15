@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 TradeX Backtesting Engine
-Tests the entire trading system with real historical data from Coinbase
+Tests the entire trading system with real historical data from Binance
 """
 
 import os

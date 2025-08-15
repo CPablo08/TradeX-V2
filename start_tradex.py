@@ -240,7 +240,7 @@ class TradeXLauncher:
             
             # Network status
             try:
-                response = requests.get('https://api.coinbase.com', timeout=5)
+                response = requests.get(Config.BINANCE_BASE_URL, timeout=5)
                 status['network_status'] = response.status_code == 200
             except:
                 status['network_status'] = False
@@ -318,9 +318,9 @@ class TradeXLauncher:
                 print("   ❌ Network: DISCONNECTED")
             
             if status['api_status']:
-                print("   ✅ Coinbase API: CONNECTED")
+                            print("   ✅ Binance API: CONNECTED")
             else:
-                print("   ❌ Coinbase API: DISCONNECTED")
+                print("   ❌ Binance API: DISCONNECTED")
             
             # Trading Status
             print()

@@ -21,10 +21,10 @@ class TradingEngine:
         if self.paper_trading:
             logger.info("🔄 PAPER TRADING MODE ENABLED - No real trades will be placed")
         
-        # Initialize Coinbase Advanced Trade client
-        self.api_key_name = Config.CB_API_KEY_NAME
-        self.private_key = Config.CB_PRIVATE_KEY
-        self.base_url = "https://api.coinbase.com/api/v3/brokerage"
+        # Initialize Binance client
+        self.api_key = Config.BINANCE_API_KEY
+        self.secret_key = Config.BINANCE_SECRET_KEY
+        self.base_url = Config.BINANCE_BASE_URL
         
         # Initialize components
         self.data_collector = DataCollector()
@@ -187,7 +187,7 @@ class TradingEngine:
         """Check network connectivity"""
         try:
             import requests
-            response = requests.get('https://api.coinbase.com', timeout=10)
+            response = requests.get(Config.BINANCE_BASE_URL, timeout=10)
             self.system_health['network_status'] = response.status_code == 200
             return self.system_health['network_status']
         except Exception as e:
@@ -196,7 +196,7 @@ class TradingEngine:
             return False
     
     def check_api_connectivity(self):
-        """Check Coinbase API connectivity"""
+        """Check Binance API connectivity"""
         try:
             # Simple API call to test connectivity
             accounts = self.client.get_accounts()

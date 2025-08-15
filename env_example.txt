@@ -1,9 +1,9 @@
-# Coinbase Advanced Trade API Credentials
-# Get these from https://pro.coinbase.com/profile/api
-# API Key and Secret are already configured in config.py
-# You only need to set the passphrase:
+# Binance API Credentials
+# Get these from https://www.binance.com/en/my/settings/api-management
+# For testnet: https://testnet.binance.vision/
 
-CB_API_PASSPHRASE=your_api_passphrase_here
+BINANCE_API_KEY=your_binance_api_key_here
+BINANCE_SECRET_KEY=your_binance_secret_key_here
 
 # Optional: Override default settings
 # TRADE_AMOUNT_USD=100
