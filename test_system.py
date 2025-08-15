@@ -7,7 +7,47 @@ Tests all components to ensure everything is working correctly
 import sys
 import os
 import time
+import subprocess
 from datetime import datetime
+
+def activate_virtual_environment():
+    """Automatically activate virtual environment if not already activated"""
+    # Check if we're already in a virtual environment
+    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        return True  # Already in virtual environment
+    
+    # Check if virtual environment exists
+    venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tradex_env')
+    if not os.path.exists(venv_path):
+        print("❌ Virtual environment not found!")
+        print("📦 Creating virtual environment...")
+        try:
+            subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
+            print("✅ Virtual environment created successfully!")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Failed to create virtual environment: {e}")
+            return False
+    
+    # Get the path to the virtual environment's Python executable
+    if os.name == 'nt':  # Windows
+        python_path = os.path.join(venv_path, 'Scripts', 'python.exe')
+    else:  # Unix/Linux/macOS
+        python_path = os.path.join(venv_path, 'bin', 'python')
+    
+    if not os.path.exists(python_path):
+        print(f"❌ Python executable not found at: {python_path}")
+        return False
+    
+    # If we're not in the virtual environment, restart with the virtual environment's Python
+    if sys.executable != python_path:
+        print("🔄 Activating virtual environment...")
+        print(f"   Current Python: {sys.executable}")
+        print(f"   Virtual Python: {python_path}")
+        
+        # Restart the script with the virtual environment's Python
+        os.execv(python_path, [python_path] + sys.argv)
+    
+    return True
 
 def test_imports():
     """Test all required imports"""
@@ -139,6 +179,11 @@ def test_backtest_engine():
 
 def main():
     """Run all tests"""
+    # Activate virtual environment automatically
+    if not activate_virtual_environment():
+        print("❌ Failed to activate virtual environment. Please run setup_jetson.sh first.")
+        sys.exit(1)
+    
     print("🚀 TradeX System Test")
     print("=" * 50)
     print(f"Test started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
