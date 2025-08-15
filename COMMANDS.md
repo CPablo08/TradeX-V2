@@ -105,6 +105,25 @@ ping api.coinbase.com
 curl -I https://api.coinbase.com
 ```
 
+## 📄 Report Generation Commands
+
+```bash
+# Generate PDF report for last 30 days (default)
+python3 report_generator.py
+
+# Generate PDF report for last 7 days
+python3 report_generator.py --days 7
+
+# Generate PDF report for last 60 days
+python3 report_generator.py --days 60
+
+# Generate PDF report with custom filename
+python3 report_generator.py --output "My_Trading_Report.pdf"
+
+# Generate report using main.py (alternative)
+python3 main.py --mode report --days 30 --output "My_Report.pdf"
+```
+
 ## 🛠️ Troubleshooting Commands
 
 ```bash

@@ -108,10 +108,37 @@ def run_paper_trading():
         print(f"❌ Paper trading error: {e}")
         raise
 
+def run_report_generation(args):
+    """Generate PDF report with trading performance metrics"""
+    print("📄 Starting TradeX Report Generation...")
+    logger.info("Starting TradeX Report Generation...")
+    
+    try:
+        from report_generator import TradeXReportGenerator
+        
+        # Create report generator
+        generator = TradeXReportGenerator(days_back=args.days if hasattr(args, 'days') else 30)
+        
+        # Load data
+        if not generator.load_trading_data():
+            print("❌ No trading data found. Make sure you have logs and trading activity.")
+            return
+        
+        # Generate report
+        filename = generator.generate_pdf_report(args.output if hasattr(args, 'output') else None)
+        
+        print(f"\n🎉 Report generated successfully!")
+        print(f"📄 File: {filename}")
+        
+    except Exception as e:
+        logger.error(f"Report generation error: {e}")
+        print(f"❌ Report generation error: {e}")
+        raise
+
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(description='TradeX Crypto Trading Platform')
-    parser.add_argument('--mode', choices=['trade', 'train', 'backtest', 'paper'], 
+    parser.add_argument('--mode', choices=['trade', 'train', 'backtest', 'paper', 'report'], 
                        default='trade', help='Operation mode')
     parser.add_argument('--config', help='Path to config file')
     parser.add_argument('--paper', action='store_true', 
@@ -123,6 +150,10 @@ def main():
     parser.add_argument('--start-date', type=str, help='Backtest start date (YYYY-MM-DD)')
     parser.add_argument('--end-date', type=str, help='Backtest end date (YYYY-MM-DD)')
     parser.add_argument('--initial-balance', type=float, default=1000, help='Initial balance for backtest')
+    
+    # Report specific arguments
+    parser.add_argument('--days', type=int, default=30, help='Number of days to analyze for report (default: 30)')
+    parser.add_argument('--output', type=str, help='Output filename for PDF report')
     
     args = parser.parse_args()
     
@@ -161,6 +192,9 @@ def main():
         elif args.mode == 'paper':
             logger.info("PAPER TRADING MODE - Simulated trading with real data")
             run_paper_trading()
+        elif args.mode == 'report':
+            logger.info("Generating PDF report...")
+            run_report_generation(args)
     
     except Exception as e:
         logger.error(f"Application error: {e}")
