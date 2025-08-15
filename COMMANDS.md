@@ -74,6 +74,9 @@ python3 setup_venv.py
 
 # Fix TensorFlow specifically
 python3 fix_tensorflow.py
+
+# Fix architecture issues (ELF header errors)
+python3 fix_architecture.py
 ```
 
 ### **Testing Commands**
@@ -140,6 +143,12 @@ python3 tradex_menu.py
 ```bash
 python3 tradex_menu.py
 # Choose: Setup & Installation → Fix TensorFlow
+```
+
+#### **"invalid ELF header" or "architecture mismatch"**
+```bash
+python3 tradex_menu.py
+# Choose: Setup & Installation → Fix Architecture Issues
 ```
 
 #### **"Virtual environment not found"**

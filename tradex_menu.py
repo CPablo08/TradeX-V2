@@ -106,6 +106,7 @@ def setup_menu():
             "Jetson Setup": "Complete automated setup for Jetson Orin Nano",
             "Fix Dependencies": "Fix missing dependencies and import issues",
             "Fix TensorFlow": "Fix TensorFlow installation issues specifically",
+            "Fix Architecture Issues": "Fix TensorFlow architecture mismatch (ELF header errors)",
             "Debug Dependencies": "Comprehensive dependency checker and fixer",
             "Check System Status": "Verify system requirements and current status"
         }
@@ -124,8 +125,10 @@ def setup_menu():
         elif choice == 4:
             run_command("python3 fix_tensorflow.py", "Fixing TensorFlow installation...")
         elif choice == 5:
-            run_command("./debug_dependencies.sh", "Debugging dependencies...")
+            run_command("python3 fix_architecture.py", "Fixing architecture issues...")
         elif choice == 6:
+            run_command("./debug_dependencies.sh", "Debugging dependencies...")
+        elif choice == 7:
             check_system_status()
         
         input("\nPress Enter to continue...")
