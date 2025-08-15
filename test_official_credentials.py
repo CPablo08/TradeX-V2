@@ -15,20 +15,29 @@ import os
 def load_official_credentials():
     """Load credentials from the official Coinbase file"""
     try:
-        with open('cdp_api_key (3).json', 'r') as f:
+        # Try new key file first
+        with open('cdp_api_key (2).json', 'r') as f:
             data = json.load(f)
-        
-        api_key_name = data['name']
-        private_key = data['privateKey']
-        
-        print(f"✅ Loaded credentials from official file")
-        print(f"🔑 API Key Name: {api_key_name[:50]}...")
-        print(f"🔑 Private Key: [PEM format loaded]")
-        
-        return api_key_name, private_key
+            api_key_name = data['name']
+            private_key = data['privateKey']
+            print(f"✅ Loaded credentials from new key file")
+            print(f"🔑 API Key Name: {api_key_name[:50]}...")
+            print(f"🔑 Private Key: [PEM format loaded]")
+            return api_key_name, private_key
     except Exception as e:
-        print(f"❌ Error loading credentials: {e}")
-        return None, None
+        try:
+            # Fallback to old key file
+            with open('cdp_api_key (3).json', 'r') as f:
+                data = json.load(f)
+                api_key_name = data['name']
+                private_key = data['privateKey']
+                print(f"✅ Loaded credentials from old key file")
+                print(f"🔑 API Key Name: {api_key_name[:50]}...")
+                print(f"🔑 Private Key: [PEM format loaded]")
+                return api_key_name, private_key
+        except Exception as e2:
+            print(f"❌ Error loading credentials: {e2}")
+            return None, None
 
 def test_coinbase_advanced_trade():
     """Test Coinbase Advanced Trade API with official credentials"""

@@ -9,13 +9,20 @@ class Config:
                 def _load_coinbase_credentials():
                     try:
                         import json
-                        with open('cdp_api_key (3).json', 'r') as f:
+                        # Try new key file first
+                        with open('cdp_api_key (2).json', 'r') as f:
                             data = json.load(f)
                         return data['name'], data['privateKey']
                     except:
-                        # Fallback to hardcoded values
-                        return ("organizations/b2689c0a-e1e7-4be2-bfb8-2bfae3fc4457/apiKeys/48ff83f4-5aa9-41fe-ac80-9f4209921b4e",
-                                """-----BEGIN EC PRIVATE KEY-----
+                        try:
+                            # Fallback to old key file
+                            with open('cdp_api_key (3).json', 'r') as f:
+                                data = json.load(f)
+                            return data['name'], data['privateKey']
+                        except:
+                            # Final fallback to hardcoded values
+                            return ("organizations/b2689c0a-e1e7-4be2-bfb8-2bfae3fc4457/apiKeys/48ff83f4-5aa9-41fe-ac80-9f4209921b4e",
+                                    """-----BEGIN EC PRIVATE KEY-----
             MHcCAQEEIA/W9rUU3BJsHpgolBqTIcvgq9qLUB/uBk2HtB7prgt+oAoGCCqGSM49
             AwEHoUQDQgAEGj95OfomV/p5Dl+zaeoBoQb3tB6BrHp1riQSjHQeF51NI+j84QRX
             XXuVZWAJNGQbYDP4Hl8Y4AXxeqPEcuhSyA==
