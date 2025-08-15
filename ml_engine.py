@@ -5,16 +5,24 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import classification_report, confusion_matrix
 import xgboost as xgb
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.optimizers import Adam
 import joblib
 import os
 from loguru import logger
 from config import Config
 import warnings
 warnings.filterwarnings('ignore')
+
+# Optional TensorFlow import
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense, Dropout
+    from tensorflow.keras.optimizers import Adam
+    TENSORFLOW_AVAILABLE = True
+    logger.info("TensorFlow is available")
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
+    logger.warning("TensorFlow not available, using alternative ML libraries")
 
 class MLEngine:
     def __init__(self):
@@ -161,6 +169,11 @@ class MLEngine:
     
     def train_lstm_model(self, features_df):
         """Train LSTM model for sequence prediction"""
+        if not TENSORFLOW_AVAILABLE:
+            logger.warning("TensorFlow not available, skipping LSTM training")
+            logger.info("Using ensemble models only")
+            return None
+        
         try:
             X = features_df[self.feature_columns].values
             y = features_df['target'].values
@@ -237,10 +250,17 @@ class MLEngine:
                 self.ensemble_model = joblib.load(Config.ENSEMBLE_MODEL_PATH)
                 logger.info("Ensemble model loaded")
             
-            if os.path.exists(Config.LSTM_MODEL_PATH):
-                from tensorflow.keras.models import load_model
-                self.lstm_model = load_model(Config.LSTM_MODEL_PATH)
-                logger.info("LSTM model loaded")
+            if os.path.exists(Config.LSTM_MODEL_PATH) and TENSORFLOW_AVAILABLE:
+                try:
+                    from tensorflow.keras.models import load_model
+                    self.lstm_model = load_model(Config.LSTM_MODEL_PATH)
+                    logger.info("LSTM model loaded")
+                except Exception as e:
+                    logger.warning(f"Could not load LSTM model: {e}")
+            elif os.path.exists(Config.LSTM_MODEL_PATH) and not TENSORFLOW_AVAILABLE:
+                logger.warning("LSTM model exists but TensorFlow not available")
+            else:
+                logger.info("No LSTM model found")
             
             self.is_trained = True
             
@@ -265,23 +285,32 @@ class MLEngine:
                 predictions['ensemble_signal'] = 1 if ensemble_prob > 0.6 else (-1 if ensemble_prob < 0.4 else 0)
             
             # LSTM prediction
-            if self.lstm_model:
-                # Prepare sequence for LSTM
-                timesteps = 10
-                if len(features_df) >= timesteps:
-                    X_sequence = features_df[self.feature_columns].iloc[-timesteps:].values
-                    X_scaled = self.scaler.transform(X_sequence)
-                    X_reshaped = X_scaled.reshape(1, timesteps, X_scaled.shape[1])
-                    
-                    lstm_prob = self.lstm_model.predict(X_reshaped)[0][0]
-                    predictions['lstm_probability'] = lstm_prob
-                    predictions['lstm_signal'] = 1 if lstm_prob > 0.6 else (-1 if lstm_prob < 0.4 else 0)
+            if self.lstm_model and TENSORFLOW_AVAILABLE:
+                try:
+                    # Prepare sequence for LSTM
+                    timesteps = 10
+                    if len(features_df) >= timesteps:
+                        X_sequence = features_df[self.feature_columns].iloc[-timesteps:].values
+                        X_scaled = self.scaler.transform(X_sequence)
+                        X_reshaped = X_scaled.reshape(1, timesteps, X_scaled.shape[1])
+                        
+                        lstm_prob = self.lstm_model.predict(X_reshaped)[0][0]
+                        predictions['lstm_probability'] = lstm_prob
+                        predictions['lstm_signal'] = 1 if lstm_prob > 0.6 else (-1 if lstm_prob < 0.4 else 0)
+                except Exception as e:
+                    logger.warning(f"LSTM prediction failed: {e}")
+            else:
+                logger.info("LSTM model not available, using ensemble only")
             
             # Combined signal
             if 'ensemble_probability' in predictions and 'lstm_probability' in predictions:
                 combined_prob = (predictions['ensemble_probability'] + predictions['lstm_probability']) / 2
                 predictions['combined_probability'] = combined_prob
                 predictions['combined_signal'] = 1 if combined_prob > 0.6 else (-1 if combined_prob < 0.4 else 0)
+            elif 'ensemble_probability' in predictions:
+                # Use ensemble only if LSTM not available
+                predictions['combined_probability'] = predictions['ensemble_probability']
+                predictions['combined_signal'] = predictions['ensemble_signal']
             
             return predictions
             
