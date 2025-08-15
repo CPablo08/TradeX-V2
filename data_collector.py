@@ -18,19 +18,51 @@ from config import Config
 
 class DataCollector:
     def __init__(self):
-        self.api_key = Config.CB_API_KEY
-        self.api_secret = Config.CB_API_SECRET
+        self.api_key_name = Config.CB_API_KEY_NAME
+        self.private_key = Config.CB_PRIVATE_KEY
         self.base_url = "https://api.coinbase.com/api/v3/brokerage"
         
     def _get_signature(self, timestamp, method, request_path, body=''):
-        """Generate Coinbase Advanced Trade API signature"""
-        message = timestamp + method + request_path + body
-        signature = hmac.new(
-            base64.b64decode(self.api_secret),
-            message.encode('utf-8'),
-            hashlib.sha256
-        )
-        return base64.b64encode(signature.digest()).decode('utf-8')
+        """Generate Coinbase Advanced Trade API signature using private key"""
+        try:
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import ec
+            from cryptography.hazmat.backends import default_backend
+            
+            # Load the private key
+            private_key = serialization.load_pem_private_key(
+                self.private_key.encode('utf-8'),
+                password=None,
+                backend=default_backend()
+            )
+            
+            # Create the message to sign
+            message = timestamp + method + request_path + body
+            
+            # Sign the message
+            signature = private_key.sign(
+                message.encode('utf-8'),
+                ec.ECDSA(hashes.SHA256())
+            )
+            
+            # Return base64 encoded signature
+            return base64.b64encode(signature).decode('utf-8')
+            
+        except ImportError:
+            # Fallback to HMAC if cryptography not available
+            logger.warning("cryptography library not available, using HMAC fallback")
+            message = timestamp + method + request_path + body
+            # Extract the key from the PEM format
+            key_lines = self.private_key.split('\n')
+            key_data = ''.join([line for line in key_lines if line and not line.startswith('-----')])
+            key_bytes = base64.b64decode(key_data)
+            
+            signature = hmac.new(
+                key_bytes,
+                message.encode('utf-8'),
+                hashlib.sha256
+            )
+            return base64.b64encode(signature.digest()).decode('utf-8')
     
     def _make_request(self, method, endpoint, params=None, data=None):
         """Make authenticated request to Coinbase API"""
@@ -49,7 +81,7 @@ class DataCollector:
             signature = self._get_signature(timestamp, method, endpoint, body)
             
             headers = {
-                'CB-ACCESS-KEY': self.api_key,
+                'CB-ACCESS-KEY': self.api_key_name,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json'

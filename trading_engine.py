@@ -22,8 +22,8 @@ class TradingEngine:
             logger.info("🔄 PAPER TRADING MODE ENABLED - No real trades will be placed")
         
         # Initialize Coinbase Advanced Trade client
-        self.api_key = Config.CB_API_KEY
-        self.api_secret = Config.CB_API_SECRET
+        self.api_key_name = Config.CB_API_KEY_NAME
+        self.private_key = Config.CB_PRIVATE_KEY
         self.base_url = "https://api.coinbase.com/api/v3/brokerage"
         
         # Initialize components

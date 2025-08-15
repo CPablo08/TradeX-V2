@@ -27,9 +27,9 @@ def test_api_connection():
         print(f"❌ Public API error: {e}")
     
     # Test 2: Check our credentials
-    print(f"\n🔑 API Key: {Config.CB_API_KEY[:20]}...")
-    print(f"🔑 API Secret: {Config.CB_API_SECRET[:20]}...")
-    print(f"🔑 API Type: Advanced Trade (no passphrase needed)")
+    print(f"\n🔑 API Key Name: {Config.CB_API_KEY_NAME[:20]}...")
+    print(f"🔑 Private Key: [PEM format]")
+    print(f"🔑 API Type: Advanced Trade (ECDSA signature)")
     
     # Test 3: Try to make a simple authenticated request
     try:
@@ -41,17 +41,48 @@ def test_api_connection():
         method = 'GET'
         path = '/v2/accounts'
         
-        # Create signature
-        message = timestamp + method + path
-        signature = hmac.new(
-            Config.CB_API_SECRET.encode('utf-8'),
-            message.encode('utf-8'),
-            hashlib.sha256
-        )
-        signature_b64 = base64.b64encode(signature.digest()).decode('utf-8')
+        # Create signature using private key
+        try:
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import ec
+            from cryptography.hazmat.backends import default_backend
+            
+            # Load the private key
+            private_key = serialization.load_pem_private_key(
+                Config.CB_PRIVATE_KEY.encode('utf-8'),
+                password=None,
+                backend=default_backend()
+            )
+            
+            # Create the message to sign
+            message = timestamp + method + path
+            
+            # Sign the message
+            signature = private_key.sign(
+                message.encode('utf-8'),
+                ec.ECDSA(hashes.SHA256())
+            )
+            
+            signature_b64 = base64.b64encode(signature).decode('utf-8')
+            
+        except ImportError:
+            # Fallback to HMAC if cryptography not available
+            print("⚠️ cryptography library not available, using HMAC fallback")
+            message = timestamp + method + path
+            # Extract the key from the PEM format
+            key_lines = Config.CB_PRIVATE_KEY.split('\n')
+            key_data = ''.join([line for line in key_lines if line and not line.startswith('-----')])
+            key_bytes = base64.b64decode(key_data)
+            
+            signature = hmac.new(
+                key_bytes,
+                message.encode('utf-8'),
+                hashlib.sha256
+            )
+            signature_b64 = base64.b64encode(signature.digest()).decode('utf-8')
         
         headers = {
-            'CB-ACCESS-KEY': Config.CB_API_KEY,
+            'CB-ACCESS-KEY': Config.CB_API_KEY_NAME,
             'CB-ACCESS-SIGN': signature_b64,
             'CB-ACCESS-TIMESTAMP': timestamp,
             'Content-Type': 'application/json'

@@ -71,7 +71,7 @@ def setup_logging():
 
 def check_environment():
     """Check if environment is properly configured"""
-    required_vars = ['CB_API_KEY', 'CB_API_SECRET']
+    required_vars = ['CB_API_KEY_NAME', 'CB_PRIVATE_KEY']
     missing_vars = []
     
     for var in required_vars:
