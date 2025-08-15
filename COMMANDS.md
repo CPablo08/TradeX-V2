@@ -60,11 +60,14 @@ python3 main.py --mode backtest --start-date 2024-01-01 --end-date 2024-01-31 --
 # Start with live dashboard (recommended)
 python3 start_tradex.py
 
-# Start trading directly
+# Real trading (live with real money)
 python3 main.py --mode trade
 
 # Paper trading (simulated with real data)
 python3 main.py --mode paper
+
+# Quick paper trading (alternative)
+python3 main.py --mode trade --paper
 ```
 
 ## 🔧 Service Commands

@@ -114,6 +114,8 @@ def main():
     parser.add_argument('--mode', choices=['trade', 'train', 'backtest', 'paper'], 
                        default='trade', help='Operation mode')
     parser.add_argument('--config', help='Path to config file')
+    parser.add_argument('--paper', action='store_true', 
+                       help='Run in paper trading mode (simulated trading)')
     parser.add_argument('--dry-run', action='store_true', 
                        help='Run in dry-run mode (no actual trades)')
     
@@ -143,10 +145,14 @@ def main():
     
     try:
         if args.mode == 'trade':
-            if args.dry_run:
+            if args.paper:
+                logger.info("PAPER TRADING MODE - Simulated trading with real data")
+                run_paper_trading()
+            elif args.dry_run:
                 logger.info("DRY RUN MODE - No actual trades will be placed")
                 # TODO: Implement dry-run mode
-            run_trading_engine()
+            else:
+                run_trading_engine()
         elif args.mode == 'train':
             logger.info("Training ML models...")
             train_models()
