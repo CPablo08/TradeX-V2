@@ -1,194 +1,216 @@
-# TradeX Setup for Jetson Devices
+# TradeX Jetson Orin Nano Setup Guide
 
-This guide will help you set up TradeX on your NVIDIA Jetson device.
+## 🚀 Quick Start Commands
 
-## 🚀 Quick Start for Jetson
-
-### 1. Prerequisites
-Make sure your Jetson has:
-- **Ubuntu 20.04 or 22.04** (recommended)
-- **Node.js v16 or higher**
-- **Git**
-
-### 2. Install Node.js (if not already installed)
+### 1. Install Dependencies
 ```bash
-# Update package list
-sudo apt update
+# Update system
+sudo apt-get update && sudo apt-get upgrade -y
 
-# Install Node.js and npm
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+# Install Python and pip
+sudo apt-get install python3 python3-pip python3-venv -y
 
-# Verify installation
-node --version
-npm --version
+# Create virtual environment
+python3 -m venv tradex_env
+source tradex_env/bin/activate
+
+# Install base requirements
+pip3 install -r requirements_jetson.txt
+
+# Install TensorFlow for Jetson (NVIDIA optimized)
+pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v512 tensorflow==2.15.0+nv23.11
 ```
 
-### 3. Clone and Setup TradeX
+### 2. Setup Environment
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/TradeX.git
-cd TradeX
+# Copy environment template
+cp env_example.txt .env
 
-# Run the automated setup script
-chmod +x setup.sh
-./setup.sh
+# Edit .env file with your Coinbase passphrase
+nano .env
 ```
 
-### 4. Start TradeX
+### 3. Test System
 ```bash
-# Start the backend server
-npm start
+# Test basic functionality
+python3 basic_test.py
 
-# In a new terminal, start the frontend
-cd client
-npm start
+# Test all imports
+python3 minimal_test.py
+
+# Test API connection
+python3 test_api.py
 ```
 
-### 5. Access the Dashboard
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
+## 📋 TradeX Commands
 
-## 🔧 Jetson-Specific Configuration
-
-### Performance Optimization
-For better performance on Jetson:
-
-1. **Increase Node.js memory limit**:
+### Training Mode
 ```bash
-export NODE_OPTIONS="--max-old-space-size=4096"
+# Train ML models with historical data
+python3 main.py --mode train
 ```
 
-2. **Add to your .env file**:
+### Backtesting Mode
 ```bash
-NODE_OPTIONS=--max-old-space-size=4096
+# Run backtest with default settings ($1000 starting capital)
+python3 main.py --mode backtest
+
+# Run backtest with custom parameters
+python3 main.py --mode backtest --start-date 2024-01-01 --end-date 2024-01-31 --initial-balance 1000
 ```
 
-### Network Configuration
-If you want to access TradeX from other devices on your network:
-
-1. **Find your Jetson's IP address**:
+### Live Trading Mode
 ```bash
-hostname -I
+# Start 24/7 trading with live status dashboard
+python3 start_tradex.py
+
+# Or start trading directly
+python3 main.py --mode trade
 ```
 
-2. **Access from other devices**:
-- Frontend: http://YOUR_JETSON_IP:3000
-- Backend: http://YOUR_JETSON_IP:5000
-
-### Auto-Start on Boot (Optional)
-To make TradeX start automatically when your Jetson boots:
-
-1. **Create a systemd service**:
+### Service Mode (24/7 Background)
 ```bash
-sudo nano /etc/systemd/system/tradex.service
-```
-
-2. **Add the following content**:
-```ini
-[Unit]
-Description=TradeX Trading Bot
-After=network.target
-
-[Service]
-Type=simple
-User=YOUR_USERNAME
-WorkingDirectory=/path/to/TradeX
-ExecStart=/usr/bin/node server/index.js
-Restart=always
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-```
-
-3. **Enable and start the service**:
-```bash
+# Install as system service
+sudo cp tradex.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl enable tradex
 sudo systemctl start tradex
+
+# Check service status
+sudo systemctl status tradex
+
+# View logs
+sudo journalctl -u tradex -f
 ```
 
-## 🐛 Troubleshooting
+## 🔧 System Requirements
 
-### Common Jetson Issues
+### Hardware
+- **Jetson Orin Nano** (4GB or 8GB)
+- **Storage**: 32GB+ (SSD recommended)
+- **Network**: Stable internet connection
+- **Power**: Reliable power supply
 
-1. **Out of Memory**:
+### Software
+- **JetPack 5.1.2** or later
+- **Python 3.8+**
+- **CUDA 11.8** (included with JetPack)
+
+## 🚨 Important Notes
+
+### Performance Optimization
 ```bash
-# Increase swap space
-sudo fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
+# Enable performance mode
+sudo nvpmodel -m 0  # Max performance
+sudo jetson_clocks  # Max clocks
+
+# Check GPU usage
+tegrastats
 ```
 
-2. **Port Already in Use**:
-```bash
-# Find and kill processes using ports 3000 or 5000
-sudo lsof -ti:3000 | xargs kill -9
-sudo lsof -ti:5000 | xargs kill -9
-```
-
-3. **Permission Issues**:
-```bash
-# Fix ownership
-sudo chown -R $USER:$USER /path/to/TradeX
-```
-
-### Performance Monitoring
-Monitor your Jetson's performance while running TradeX:
-
+### Memory Management
 ```bash
 # Monitor system resources
 htop
-
-# Monitor GPU usage (if applicable)
-nvidia-smi
-
-# Monitor disk usage
-df -h
-
-# Monitor memory usage
 free -h
+df -h
 ```
 
-## 📊 Resource Requirements
+### Network Configuration
+```bash
+# Test network connectivity
+ping api.coinbase.com
+curl -I https://api.coinbase.com
+```
 
-### Minimum Requirements
-- **RAM**: 4GB
-- **Storage**: 2GB free space
-- **CPU**: 2 cores
-- **Network**: Stable internet connection
+## 🛠️ Troubleshooting
 
-### Recommended Requirements
-- **RAM**: 8GB
-- **Storage**: 5GB free space
-- **CPU**: 4 cores
-- **Network**: High-speed internet connection
+### TensorFlow Issues
+```bash
+# Check TensorFlow installation
+python3 -c "import tensorflow as tf; print(tf.__version__); print(tf.config.list_physical_devices('GPU'))"
 
-## 🔒 Security Considerations
+# Reinstall if needed
+pip3 uninstall tensorflow
+pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v512 tensorflow==2.15.0+nv23.11
+```
 
-1. **Firewall Configuration**:
+### API Connection Issues
+```bash
+# Test API credentials
+python3 test_api.py
+
+# Check firewall
+sudo ufw status
+```
+
+### Service Issues
+```bash
+# Restart service
+sudo systemctl restart tradex
+
+# Check logs
+sudo journalctl -u tradex -n 50
+```
+
+## 📊 Monitoring
+
+### Real-time Monitoring
+```bash
+# Start with live dashboard
+python3 start_tradex.py
+
+# Monitor system resources
+watch -n 2 'tegrastats && echo "---" && free -h && echo "---" && df -h'
+```
+
+### Log Monitoring
+```bash
+# View real-time logs
+tail -f logs/tradex.log
+
+# Search for errors
+grep -i error logs/tradex.log
+```
+
+## 🔒 Security
+
+### Firewall Setup
 ```bash
 # Allow only necessary ports
-sudo ufw allow 3000
-sudo ufw allow 5000
+sudo ufw allow ssh
+sudo ufw allow 22
 sudo ufw enable
 ```
 
-2. **Regular Updates**:
-```bash
-# Keep your system updated
-sudo apt update && sudo apt upgrade
-```
+### API Key Security
+- Store API keys securely
+- Use environment variables
+- Regular key rotation
+- Monitor API usage
 
-## 📞 Support
+## 📈 Performance Tips
 
-If you encounter issues specific to Jetson:
-1. Check the main README.md troubleshooting section
-2. Verify your Jetson's specifications meet the requirements
-3. Check system logs: `journalctl -u tradex` (if using systemd)
-4. Create an issue on GitHub with "Jetson" in the title
+1. **Use SSD storage** for faster data access
+2. **Enable performance mode** with `nvpmodel -m 0`
+3. **Monitor temperature** with `tegrastats`
+4. **Optimize network** for low latency
+5. **Regular system updates**
 
----
+## 🆘 Support
 
-**Happy Trading on Jetson! 🚀💰**
+If you encounter issues:
+1. Check the logs: `tail -f logs/tradex.log`
+2. Test individual components
+3. Verify network connectivity
+4. Check system resources
+5. Review this setup guide
+
+## 🎯 Success Indicators
+
+✅ **System is ready when:**
+- All tests pass (`basic_test.py`, `minimal_test.py`, `test_api.py`)
+- TensorFlow GPU is detected
+- API connection works
+- Service starts without errors
+- Live dashboard shows status updates

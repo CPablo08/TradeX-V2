@@ -1,0 +1,11 @@
+# Coinbase Advanced Trade API Credentials
+# Get these from https://pro.coinbase.com/profile/api
+# API Key and Secret are already configured in config.py
+# You only need to set the passphrase:
+
+CB_API_PASSPHRASE=your_api_passphrase_here
+
+# Optional: Override default settings
+# TRADE_AMOUNT_USD=100
+# STOP_LOSS_PERCENTAGE=0.02
+# TAKE_PROFIT_PERCENTAGE=0.04
