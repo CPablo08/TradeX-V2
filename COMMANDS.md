@@ -8,6 +8,12 @@
 ./setup_jetson.sh
 ```
 
+### Fix Missing Dependencies
+```bash
+# If you get ModuleNotFoundError, run this fix script
+./fix_dependencies.sh
+```
+
 ### Manual Setup
 ```bash
 # Install dependencies
