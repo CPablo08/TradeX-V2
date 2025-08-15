@@ -6,8 +6,8 @@ load_dotenv()
 class Config:
     # Alpaca Trading API Configuration
     # Paper Trading (simulation) and Live Trading
-    ALPACA_API_KEY = os.getenv('ALPACA_API_KEY', 'your_alpaca_api_key_here')
-    ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY', 'your_alpaca_secret_key_here')
+    ALPACA_API_KEY = os.getenv('ALPACA_API_KEY', 'PKX9ZHH62ZAOCHHTJL9D')
+    ALPACA_SECRET_KEY = os.getenv('ALPACA_SECRET_KEY', 'RpDDdfWLtooio3SdQKmqAp5TKKhYK3ZTy9L8ohn7')
     
     # Alpaca Paper Trading (simulation) - True for paper trading, False for live
     ALPACA_PAPER_TRADING = True
@@ -79,10 +79,9 @@ class Config:
     LOG_RETENTION = "7 days"  # Keep logs for 7 days
     
     # Supported Assets (Alpaca compatible symbols)
-    # For crypto: BTC/USD, ETH/USD (Alpaca supports crypto trading)
-    # For stocks: AAPL, GOOGL, MSFT, etc.
-    SUPPORTED_PAIRS = ['BTC/USD', 'ETH/USD']  # Crypto pairs
-    # SUPPORTED_PAIRS = ['AAPL', 'GOOGL', 'MSFT']  # Stock symbols (uncomment for stocks)
+    # For stocks: AAPL, GOOGL, MSFT, TSLA, AMZN, NVDA, etc.
+    SUPPORTED_PAIRS = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'NVDA']  # Stock symbols
+    # SUPPORTED_PAIRS = ['BTC/USD', 'ETH/USD']  # Crypto pairs (uncomment for crypto)
     
     # ML Model Paths
     MODEL_DIR = "models/"
