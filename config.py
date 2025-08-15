@@ -4,10 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    # Coinbase API Configuration
+    # Coinbase Advanced Trade API Configuration
     CB_API_KEY = "organizations/b2689c0a-e1e7-4be2-bfb8-2bfae3fc4457/apiKeys/48ff83f4-5aa9-41fe-ac80-9f4209921b4e"
     CB_API_SECRET = "MHcCAQEEIA/W9rUU3BJsHpgolBqTIcvgq9qLUB/uBk2HtB7prgt+oAoGCCqGSM49AwEHoUQDQgAEGj95OfomV/p5Dl+zaeoBoQb3tB6BrHp1riQSjHQeF51NI+j84QRXXXuVZWAJNGQbYDP4Hl8Y4AXxeqPEcuhSyA=="
-    CB_API_PASSPHRASE = os.getenv('CB_API_PASSPHRASE', 'your_passphrase_here')
     
     # Trading Parameters - Modified for crypto holdings
     TRADE_AMOUNT_USD = 100  # USD equivalent per trade

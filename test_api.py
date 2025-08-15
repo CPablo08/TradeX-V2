@@ -29,7 +29,7 @@ def test_api_connection():
     # Test 2: Check our credentials
     print(f"\n🔑 API Key: {Config.CB_API_KEY[:20]}...")
     print(f"🔑 API Secret: {Config.CB_API_SECRET[:20]}...")
-    print(f"🔑 Passphrase: {Config.CB_API_PASSPHRASE}")
+    print(f"🔑 API Type: Advanced Trade (no passphrase needed)")
     
     # Test 3: Try to make a simple authenticated request
     try:
@@ -54,7 +54,6 @@ def test_api_connection():
             'CB-ACCESS-KEY': Config.CB_API_KEY,
             'CB-ACCESS-SIGN': signature_b64,
             'CB-ACCESS-TIMESTAMP': timestamp,
-            'CB-ACCESS-PASSPHRASE': Config.CB_API_PASSPHRASE,
             'Content-Type': 'application/json'
         }
         

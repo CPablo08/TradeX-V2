@@ -20,14 +20,13 @@ class DataCollector:
     def __init__(self):
         self.api_key = Config.CB_API_KEY
         self.api_secret = Config.CB_API_SECRET
-        self.passphrase = Config.CB_API_PASSPHRASE
         self.base_url = "https://api.coinbase.com/api/v3/brokerage"
         
     def _get_signature(self, timestamp, method, request_path, body=''):
-        """Generate Coinbase API signature"""
+        """Generate Coinbase Advanced Trade API signature"""
         message = timestamp + method + request_path + body
         signature = hmac.new(
-            self.api_secret.encode('utf-8'),
+            base64.b64decode(self.api_secret),
             message.encode('utf-8'),
             hashlib.sha256
         )
@@ -46,14 +45,13 @@ class DataCollector:
             
             body = json.dumps(data) if data else ''
             
-            # Generate headers
+            # Generate headers for Advanced Trade API
             signature = self._get_signature(timestamp, method, endpoint, body)
             
             headers = {
                 'CB-ACCESS-KEY': self.api_key,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-TIMESTAMP': timestamp,
-                'CB-ACCESS-PASSPHRASE': self.passphrase,
                 'Content-Type': 'application/json'
             }
             
