@@ -2,7 +2,13 @@
 
 ## 🚀 Setup Commands
 
-### Automated Setup (Recommended)
+### Virtual Environment Setup (Recommended)
+```bash
+# Dedicated virtual environment setup
+python3 setup_venv.py
+```
+
+### Automated Setup (Jetson)
 ```bash
 # Run the complete setup script
 ./setup_jetson.sh
@@ -12,6 +18,15 @@
 ```bash
 # If you get ModuleNotFoundError, run this fix script
 ./fix_dependencies.sh
+```
+
+### Manual Activation (Optional)
+```bash
+# Activate virtual environment manually
+source tradex_env/bin/activate
+
+# Or use the generated activation script
+./activate_tradex.sh
 ```
 
 ### Manual Setup
