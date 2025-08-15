@@ -71,6 +71,9 @@ python3 setup_venv.py
 
 # Fix dependencies
 ./fix_dependencies.sh
+
+# Fix TensorFlow specifically
+python3 fix_tensorflow.py
 ```
 
 ### **Testing Commands**
@@ -131,6 +134,12 @@ python3 main.py --mode report --days 60 --output my_report.pdf
 ```bash
 python3 tradex_menu.py
 # Choose: Setup & Installation → Fix Dependencies
+```
+
+#### **"TensorFlow import failed"**
+```bash
+python3 tradex_menu.py
+# Choose: Setup & Installation → Fix TensorFlow
 ```
 
 #### **"Virtual environment not found"**

@@ -105,6 +105,7 @@ def setup_menu():
             "Virtual Environment Setup": "Create and configure virtual environment with all dependencies",
             "Jetson Setup": "Complete automated setup for Jetson Orin Nano",
             "Fix Dependencies": "Fix missing dependencies and import issues",
+            "Fix TensorFlow": "Fix TensorFlow installation issues specifically",
             "Debug Dependencies": "Comprehensive dependency checker and fixer",
             "Check System Status": "Verify system requirements and current status"
         }
@@ -121,8 +122,10 @@ def setup_menu():
         elif choice == 3:
             run_command("./fix_dependencies.sh", "Fixing dependencies...")
         elif choice == 4:
-            run_command("./debug_dependencies.sh", "Debugging dependencies...")
+            run_command("python3 fix_tensorflow.py", "Fixing TensorFlow installation...")
         elif choice == 5:
+            run_command("./debug_dependencies.sh", "Debugging dependencies...")
+        elif choice == 6:
             check_system_status()
         
         input("\nPress Enter to continue...")

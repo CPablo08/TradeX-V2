@@ -160,8 +160,20 @@ def install_tensorflow_jetson(pip_executable):
         return True
     except subprocess.CalledProcessError as e:
         print_warning(f"Failed to install TensorFlow for Jetson: {e}")
-        print("   This is normal if you're not on a Jetson device")
-        return True  # Don't fail the setup for this
+        
+        # Try regular TensorFlow as fallback
+        try:
+            print_status("Trying regular TensorFlow as fallback...")
+            result = subprocess.run([
+                str(pip_executable), "install", "tensorflow==2.15.0"
+            ], check=True, capture_output=True, text=True)
+            
+            print_success("Regular TensorFlow installed successfully")
+            return True
+        except subprocess.CalledProcessError as e2:
+            print_warning(f"Failed to install regular TensorFlow: {e2}")
+            print("   TensorFlow installation failed, but TradeX will work with other ML libraries")
+            return True  # Don't fail the setup for this
 
 def test_imports(python_executable):
     """Test that key imports work"""
@@ -212,7 +224,8 @@ try:
     import tensorflow
     print("✅ tensorflow")
 except ImportError as e:
-    print(f"❌ tensorflow: {e}")
+    print(f"⚠️ tensorflow: {e}")
+    print("   TradeX will use alternative ML libraries")
 
 try:
     from PIL import Image
