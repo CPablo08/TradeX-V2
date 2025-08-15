@@ -24,6 +24,9 @@ nano .env  # Add your Coinbase passphrase
 ## 🧪 Test Commands
 
 ```bash
+# Comprehensive system test (recommended)
+python3 test_system.py
+
 # Basic functionality test
 python3 basic_test.py
 

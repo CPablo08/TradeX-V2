@@ -75,21 +75,26 @@ class TradeXLauncher:
     def start_trading_system(self):
         """Start the main trading system"""
         try:
+            print("🚀 Starting TradeX Trading System...")
             logger.info("🚀 Starting TradeX Trading System...")
             
+            print("📋 Initializing trading components...")
             # Start the trading system
             self.trading_process = subprocess.Popen([
                 sys.executable, "main.py", "--mode", "trade"
             ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             
+            print("⏳ Waiting for system initialization...")
             # Wait a moment to see if it starts successfully
             time.sleep(3)
             
             if self.trading_process.poll() is None:
+                print(f"✅ Trading system started successfully! (PID: {self.trading_process.pid})")
                 logger.info(f"✅ Trading system started (PID: {self.trading_process.pid})")
                 return True
             else:
                 stdout, stderr = self.trading_process.communicate()
+                print("❌ Trading system failed to start")
                 logger.error(f"❌ Trading system failed to start")
                 logger.error(f"STDOUT: {stdout}")
                 logger.error(f"STDERR: {stderr}")
@@ -102,21 +107,26 @@ class TradeXLauncher:
     def start_monitor(self):
         """Start the external monitor"""
         try:
+            print("🔍 Starting TradeX Monitor...")
             logger.info("🔍 Starting TradeX Monitor...")
             
+            print("📊 Initializing monitoring components...")
             # Start the monitor
             self.monitor_process = subprocess.Popen([
                 sys.executable, "monitor.py"
             ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             
+            print("⏳ Waiting for monitor initialization...")
             # Wait a moment to see if it starts successfully
             time.sleep(2)
             
             if self.monitor_process.poll() is None:
+                print(f"✅ Monitor started successfully! (PID: {self.monitor_process.pid})")
                 logger.info(f"✅ Monitor started (PID: {self.monitor_process.pid})")
                 return True
             else:
                 stdout, stderr = self.monitor_process.communicate()
+                print("❌ Monitor failed to start")
                 logger.error(f"❌ Monitor failed to start")
                 logger.error(f"STDOUT: {stdout}")
                 logger.error(f"STDERR: {stderr}")
@@ -366,11 +376,14 @@ class TradeXLauncher:
             logger.warning("⚠️  Failed to start monitor. Continuing without external monitoring.")
         
         # Start status monitoring thread
+        print("📊 Starting live status monitor (updates every 2 seconds)...")
         logger.info("📊 Starting status monitor (updates every 2 seconds)...")
         self.status_thread = threading.Thread(target=self.status_monitor_thread, daemon=True)
         self.status_thread.start()
         
         # Main loop
+        print("🎉 TradeX is now running successfully! Press Ctrl+C to stop.")
+        print("📱 You can monitor the system from any device on your network")
         logger.info("✅ TradeX is now running! Press Ctrl+C to stop.")
         try:
             while self.running:

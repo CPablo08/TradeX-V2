@@ -65,12 +65,15 @@ class TradingEngine:
         self.max_recovery_attempts = 10
         
         # Load ML models
+        print("🧠 Loading ML models...")
         self.ml_engine.load_models()
+        print("✅ ML models loaded successfully!")
         
         # Setup signal handlers for graceful shutdown
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
         
+        print("🔄 Trading Engine initialized with 24/7 automation protocols")
         logger.info("Trading Engine initialized with 24/7 automation protocols")
     
     def signal_handler(self, signum, frame):
@@ -740,49 +743,60 @@ class TradingEngine:
     def execute_trading_cycle(self):
         """Execute one complete trading cycle with safety checks"""
         try:
+            print(f"🔄 Trading cycle started at {datetime.now().strftime('%H:%M:%S')}")
             logger.info("Starting trading cycle...")
             
             # Check emergency stop
             if self.emergency_stop:
+                print("⚠️ Trading cycle skipped due to emergency stop")
                 logger.warning("Trading cycle skipped due to emergency stop")
                 return
             
             # Check system health
             if not self.check_system_health():
+                print("⚠️ System health check failed")
                 logger.warning("System health check failed")
             
             # Check network connectivity
             if not self.check_network_connectivity():
+                print("❌ Network connectivity issues. Skipping trading cycle.")
                 logger.error("Network connectivity issues. Skipping trading cycle.")
                 return
             
             # Check API connectivity
             if not self.check_api_connectivity():
+                print("❌ API connectivity issues. Skipping trading cycle.")
                 logger.error("API connectivity issues. Skipping trading cycle.")
                 return
             
             # Update account balances
             if not self.check_account_balances():
+                print("❌ Failed to check account balances. Skipping trading cycle.")
                 logger.error("Failed to check account balances. Skipping trading cycle.")
                 return
             
             # Update portfolio value
             self.portfolio_value = self.get_portfolio_value()
+            print(f"💰 Portfolio Value: ${self.portfolio_value:.2f}")
             logger.info(f"Current portfolio value: ${self.portfolio_value:.2f}")
             
             # Manage existing positions
+            print("📊 Managing existing positions...")
             self.manage_positions()
             
             # Analyze each supported pair
             for symbol in Config.SUPPORTED_PAIRS:
+                print(f"📈 Analyzing {symbol}...")
                 logger.info(f"Analyzing {symbol}...")
                 
                 # Get market analysis
                 analysis = self.analyze_market_conditions(symbol)
                 if not analysis:
+                    print(f"⚠️ No analysis available for {symbol}")
                     continue
                 
                 # Log analysis results
+                print(f"📊 {symbol}: {analysis['trend']} trend, RSI: {analysis['rsi']:.2f}, Price: ${analysis['current_price']:.2f}")
                 logger.info(f"{symbol} Analysis: {analysis['trend']} trend, "
                           f"Signal strength: {analysis['signal_strength']}, "
                           f"RSI: {analysis['rsi']:.2f}, "
@@ -796,6 +810,7 @@ class TradingEngine:
                     confidence = analysis['ml_predictions'].get('combined_probability', 0.5) if analysis['ml_predictions'] else 0.5
                     position_size = self.calculate_position_size(symbol, confidence)
                     
+                    print(f"🎯 TRADING SIGNAL: {symbol} {direction.upper()} ${position_size:.2f} (confidence: {confidence:.2f})")
                     logger.info(f"Trading signal: {symbol} {direction} ${position_size:.2f}")
                     
                     # Place order
@@ -812,6 +827,7 @@ class TradingEngine:
                 # Add delay between symbols
                 time.sleep(2)
             
+            print("✅ Trading cycle completed successfully!")
             logger.info("Trading cycle completed")
             
         except Exception as e:
@@ -846,10 +862,13 @@ class TradingEngine:
     
     def run(self):
         """Run the trading engine continuously with 24/7 monitoring"""
+        print("🚀 Starting TradeX Trading Engine with 24/7 Automation...")
         logger.info("Starting TradeX Trading Engine with 24/7 Automation...")
         
         # Load previous system state
+        print("📂 Loading previous system state...")
         self.load_system_state()
+        print("✅ System state loaded!")
         
         # Schedule daily reset
         schedule.every().day.at("00:00").do(self.reset_daily_counters)
@@ -858,28 +877,48 @@ class TradingEngine:
         schedule.every(6).hours.do(self.log_system_status)
         
         # Initial system checks
+        print("🔍 Performing initial system health check...")
         if not self.check_system_health():
+            print("❌ Initial system health check failed")
             logger.warning("Initial system health check failed")
+        else:
+            print("✅ System health check passed!")
         
+        print("🌐 Testing network connectivity...")
         if not self.check_network_connectivity():
+            print("❌ Initial network connectivity check failed")
             logger.error("Initial network connectivity check failed")
             if not self.attempt_recovery():
+                print("❌ Failed to establish network connectivity. Exiting.")
                 logger.critical("Failed to establish network connectivity. Exiting.")
                 return
+        else:
+            print("✅ Network connectivity confirmed!")
         
+        print("🔑 Testing API connectivity...")
         if not self.check_api_connectivity():
+            print("❌ Initial API connectivity check failed")
             logger.error("Initial API connectivity check failed")
             if not self.attempt_recovery():
+                print("❌ Failed to establish API connectivity. Exiting.")
                 logger.critical("Failed to establish API connectivity. Exiting.")
                 return
+        else:
+            print("✅ API connectivity confirmed!")
         
         # Initial balance check
+        print("💰 Checking account balances...")
         if not self.check_account_balances():
+            print("❌ Failed initial balance check. Exiting.")
             logger.error("Failed initial balance check. Exiting.")
             return
+        else:
+            print("✅ Account balances verified!")
         
+        print("🎯 All systems ready! Starting initial trading cycle...")
         # Initial trading cycle
         self.execute_trading_cycle()
+        print("✅ Initial trading cycle completed!")
         
         # Schedule regular trading cycles (every hour)
         schedule.every().hour.do(self.execute_trading_cycle)
