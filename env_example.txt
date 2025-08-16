@@ -1,11 +1,21 @@
-# Binance API Credentials
+# TradeX V3 Environment Configuration
+# Copy this file to .env and fill in your actual values
+
+# Binance API Configuration
 # Get these from https://www.binance.com/en/my/settings/api-management
-# For testnet: https://testnet.binance.vision/
+BINANCE_API_KEY=your_api_key_here
+BINANCE_SECRET_KEY=your_secret_key_here
 
-BINANCE_API_KEY=your_binance_api_key_here
-BINANCE_SECRET_KEY=your_binance_secret_key_here
+# Use testnet for safe testing (recommended)
+# Get testnet credentials from: https://testnet.binance.vision/
+BINANCE_TESTNET=True
 
-# Optional: Override default settings
-# TRADE_AMOUNT_USD=100
-# STOP_LOSS_PERCENTAGE=0.02
-# TAKE_PROFIT_PERCENTAGE=0.04
+# Trading Configuration
+# Set to False for real trading (use with caution!)
+PAPER_TRADING=True
+
+# Optional: Custom trading parameters
+# UPDATE_INTERVAL=60
+# MAX_DAILY_TRADES=10
+# STOP_LOSS_PERCENTAGE=2.0
+# TAKE_PROFIT_PERCENTAGE=4.0

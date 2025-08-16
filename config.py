@@ -1,96 +1,133 @@
+"""
+TradeX V3 Configuration
+Automated BTC Trading Platform Configuration
+"""
+
 import os
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
 
 class Config:
-    # Binance Trading API Configuration
-    # Paper Trading (Testnet) and Live Trading
-    BINANCE_API_KEY = os.getenv('BINANCE_API_KEY', 'your_binance_api_key_here')
-    BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY', 'your_binance_secret_key_here')
+    # Binance API Configuration
+    BINANCE_API_KEY = os.getenv('BINANCE_API_KEY', '')
+    BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY', '')
+    BINANCE_TESTNET = os.getenv('BINANCE_TESTNET', 'True').lower() == 'true'
     
-    # Binance Paper Trading (Testnet) - True for testnet, False for live
-    BINANCE_TESTNET = True
+    # Binance API URLs (Testnet vs Live)
+    BINANCE_TESTNET_URL = "https://testnet.binance.vision"
+    BINANCE_LIVE_URL = "https://api.binance.com"
+    BINANCE_WS_TESTNET_URL = "wss://testnet.binance.vision/ws"
+    BINANCE_WS_LIVE_URL = "wss://stream.binance.com:9443/ws"
     
-    # Binance API Base URLs
-    BINANCE_TESTNET_URL = "https://testnet.binance.vision"     # Testnet (paper trading)
-    BINANCE_LIVE_URL = "https://api.binance.com"               # Live trading
-    BINANCE_WS_TESTNET = "wss://testnet.binance.vision/ws"     # WebSocket testnet
-    BINANCE_WS_LIVE = "wss://stream.binance.com:9443/ws"       # WebSocket live
-    
-    # Get the appropriate base URL based on testnet setting
+    # Select appropriate URLs based on testnet setting
     BINANCE_BASE_URL = BINANCE_TESTNET_URL if BINANCE_TESTNET else BINANCE_LIVE_URL
-    BINANCE_WS_URL = BINANCE_WS_TESTNET if BINANCE_TESTNET else BINANCE_WS_LIVE
+    BINANCE_WS_URL = BINANCE_WS_TESTNET_URL if BINANCE_TESTNET else BINANCE_WS_LIVE_URL
     
-    # Trading Parameters - Modified for crypto holdings
-    TRADE_AMOUNT_USD = 100  # USD equivalent per trade
-    MAX_POSITION_SIZE = 0.1  # 10% of portfolio per position
-    STOP_LOSS_PERCENTAGE = 0.02  # 2% stop loss
-    TAKE_PROFIT_PERCENTAGE = 0.04  # 4% take profit
+    # Trading Configuration
+    SYMBOL = 'BTCUSDT'
+    QUANTITY = 0.001  # Minimum BTC quantity
+    MAX_QUANTITY = 0.01  # Maximum BTC quantity per trade
     
-    # Safety Protocols
-    MAX_DAILY_TRADES = 10
-    MAX_DRAWDOWN = 0.15  # 15% maximum drawdown
-    CORRELATION_THRESHOLD = 0.7  # Don't trade if BTC/ETH correlation > 0.7
-    
-    # Balance Safety Limits
-    MIN_BTC_BALANCE = 0.001  # Minimum BTC to keep (prevent selling all)
-    MIN_ETH_BALANCE = 0.01   # Minimum ETH to keep (prevent selling all)
-    MIN_USD_BALANCE = 50     # Minimum USD to keep for fees
-    
-    # 24/7 Automation Settings
-    HEARTBEAT_INTERVAL = 300  # 5 minutes - system health check interval
-    MAX_CONSECUTIVE_ERRORS = 5  # Emergency stop after this many errors
-    MAX_RECOVERY_ATTEMPTS = 10  # Maximum recovery attempts before exit
-    SYSTEM_STATUS_INTERVAL = 6  # Hours between system status reports
-    STATE_SAVE_INTERVAL = 60  # Minutes between state saves
-    
-    # System Health Thresholds
-    MAX_MEMORY_USAGE = 90  # Percentage - warning if exceeded
-    MAX_CPU_USAGE = 80     # Percentage - warning if exceeded
-    MAX_DISK_USAGE = 90    # Percentage - warning if exceeded
-    
-    # Network and API Settings
-    NETWORK_TIMEOUT = 10   # Seconds for network connectivity checks
-    API_TIMEOUT = 30       # Seconds for API calls
-    
-    # Technical Indicators
+    # Technical Analysis Configuration
     RSI_PERIOD = 14
-    SMA_PERIOD = 50
-    EMA_PERIOD = 20
-    BB_PERIOD = 20
-    BB_STD_DEV = 2
     MACD_FAST = 12
     MACD_SLOW = 26
     MACD_SIGNAL = 9
+    BOLLINGER_PERIOD = 20
+    BOLLINGER_STD = 2
+    SMA_PERIODS = [20, 50, 200]
     
-    # ML Model Parameters
-    FEATURE_LOOKBACK = 100  # Number of historical candles for features
-    PREDICTION_HORIZON = 24  # Hours ahead to predict
-    MODEL_RETRAIN_INTERVAL = 24  # Hours between model retraining
-    MIN_SAMPLES_FOR_TRAINING = 1000
+    # Multi-Timeframe Analysis
+    TIMEFRAMES = ['1m', '5m', '15m', '1h', '4h', '1d']
+    TIMEFRAME_WEIGHTS = {
+        '1m': 0.05,   # 5% weight for noise filtering
+        '5m': 0.15,   # 15% weight for short-term signals
+        '15m': 0.25,  # 25% weight for medium-term trends
+        '1h': 0.30,   # 30% weight for primary analysis
+        '4h': 0.20,   # 20% weight for trend confirmation
+        '1d': 0.05    # 5% weight for long-term context
+    }
     
-    # Data Collection
-    DATA_GRANULARITY = 3600  # 1 hour candles
-    DATA_LOOKBACK_DAYS = 30  # Days of historical data to fetch
+    # Advanced Indicators
+    STOCHASTIC_K = 14
+    STOCHASTIC_D = 3
+    WILLIAMS_R_PERIOD = 14
+    CCI_PERIOD = 20
+    ADX_PERIOD = 14
+    ATR_PERIOD = 14
     
-    # Logging
-    LOG_LEVEL = "INFO"
-    LOG_FILE = "tradex.log"
-    LOG_ROTATION = "1 day"  # Rotate logs daily
-    LOG_RETENTION = "7 days"  # Keep logs for 7 days
+    # ML Model Configuration
+    ML_LOOKBACK_HOURS = 48  # Increased for better pattern recognition
+    ML_PREDICTION_HORIZON = 1  # hours
+    ML_CONFIDENCE_THRESHOLD = 0.75  # Increased for higher quality signals
     
-    # Supported Assets (Binance crypto pairs)
-    # Crypto trading pairs - Binance format
-    SUPPORTED_PAIRS = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'DOTUSDT']  # Crypto pairs
-    # Popular crypto pairs for trading
+    # Ensemble Learning
+    ENSEMBLE_MODELS = True  # Use multiple models for better predictions
+    MODEL_TYPES = ['LSTM', 'GRU', 'Transformer']  # Different model architectures
+    ENSEMBLE_WEIGHTS = [0.4, 0.35, 0.25]  # Weight for each model type
     
-    # ML Model Paths
-    MODEL_DIR = "models/"
-    FEATURE_SCALER_PATH = "models/feature_scaler.pkl"
-    ENSEMBLE_MODEL_PATH = "models/ensemble_model.pkl"
-    LSTM_MODEL_PATH = "models/lstm_model.h5"
+    # Feature Engineering
+    TECHNICAL_FEATURES = True  # Include technical indicators as features
+    SENTIMENT_ANALYSIS = True  # Include market sentiment data
+    VOLUME_ANALYSIS = True  # Include volume-based features
+    MARKET_MICROSTRUCTURE = True  # Include order book data
     
-    # System State Files
-    SYSTEM_STATE_FILE = "system_state.json"
-    TRAINING_SUMMARY_FILE = "training_summary.json"
+    # Logic Engine Weights
+    TECHNICAL_INDICATORS_WEIGHT = 0.30
+    ML_PREDICTION_WEIGHT = 0.35
+    TREND_CONFIRMATION_WEIGHT = 0.20
+    LIQUIDITY_VOLATILITY_WEIGHT = 0.15
+    
+    # Market Regime Detection
+    REGIME_DETECTION = True  # Detect market conditions (trending/ranging/volatile)
+    REGIME_ADAPTATION = True  # Adapt strategy based on market regime
+    VOLATILITY_REGIMES = ['LOW', 'MEDIUM', 'HIGH']
+    TREND_REGIMES = ['BULLISH', 'BEARISH', 'SIDEWAYS']
+    
+    # Regime-Specific Parameters
+    REGIME_PARAMETERS = {
+        'BULLISH_LOW': {'position_size': 0.03, 'stop_loss': 1.5, 'take_profit': 6.0},
+        'BULLISH_MEDIUM': {'position_size': 0.025, 'stop_loss': 2.0, 'take_profit': 5.0},
+        'BULLISH_HIGH': {'position_size': 0.02, 'stop_loss': 2.5, 'take_profit': 4.0},
+        'BEARISH_LOW': {'position_size': 0.02, 'stop_loss': 2.0, 'take_profit': 4.0},
+        'BEARISH_MEDIUM': {'position_size': 0.025, 'stop_loss': 2.5, 'take_profit': 5.0},
+        'BEARISH_HIGH': {'position_size': 0.03, 'stop_loss': 3.0, 'take_profit': 6.0},
+        'SIDEWAYS_LOW': {'position_size': 0.015, 'stop_loss': 1.5, 'take_profit': 3.0},
+        'SIDEWAYS_MEDIUM': {'position_size': 0.02, 'stop_loss': 2.0, 'take_profit': 4.0},
+        'SIDEWAYS_HIGH': {'position_size': 0.025, 'stop_loss': 2.5, 'take_profit': 5.0}
+    }
+    
+    # Risk Management
+    STOP_LOSS_PERCENTAGE = 2.0  # 2% stop loss
+    TAKE_PROFIT_PERCENTAGE = 4.0  # 4% take profit
+    MAX_DAILY_TRADES = 15  # Increased for more opportunities
+    MAX_DAILY_LOSS = 3.0  # Reduced for better risk control
+    
+    # Dynamic Position Sizing
+    BASE_POSITION_SIZE = 0.02  # 2% of balance per trade
+    MAX_POSITION_SIZE = 0.10  # 10% max position size
+    VOLATILITY_ADJUSTMENT = True  # Adjust position size based on volatility
+    KELLY_CRITERION = True  # Use Kelly Criterion for optimal sizing
+    
+    # Advanced Risk Controls
+    CORRELATION_LIMIT = 0.7  # Maximum correlation between trades
+    MAX_CONCURRENT_POSITIONS = 3  # Maximum open positions
+    TRAILING_STOP = True  # Enable trailing stop-loss
+    TRAILING_STOP_PERCENTAGE = 1.5  # 1.5% trailing stop
+    
+    # Monitoring Configuration
+    UPDATE_INTERVAL = 5  # seconds
+    DATA_RETRIEVAL_INTERVAL = 60  # seconds
+    
+    # Database Configuration
+    DATABASE_PATH = 'tradex.db'
+    LOG_FILE = 'tradex.log'
+    
+    # Paper Trading Mode
+    PAPER_TRADING = os.getenv('PAPER_TRADING', 'True').lower() == 'true'
+    
+    # Logging Configuration
+    LOG_LEVEL = 'INFO'
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

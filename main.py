@@ -1,249 +1,392 @@
-#!/usr/bin/env python3
 """
-TradeX - Crypto Trading Automation Platform
-Main entry point for the trading system
+TradeX V3 - Main Application
+Automated BTC Trading Platform
+Entry point for the complete trading system
 """
 
 import os
 import sys
-import argparse
-import subprocess
-from loguru import logger
-from trading_engine import TradingEngine
-from train_models import main as train_models
-from backtest_engine import BacktestEngine
+import logging
+import time
+import threading
+from datetime import datetime
+import signal
+
+# Add current directory to path for imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from config import Config
+from data_retriever import DataRetriever
+from ml_predictor import MLPredictor
+from risk_module import RiskModule
+from logic_engine import LogicEngine
+from executor import Executor
+from trade_logger import TradeLogger
+from terminal_interface import TerminalInterface
 
-def activate_virtual_environment():
-    """Automatically activate virtual environment if not already activated"""
-    # Check if we're already in a virtual environment
-    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-        return  # Already in virtual environment
+class TradingSystem:
+    """Main trading system that orchestrates all modules"""
     
-    # Check if virtual environment exists
-    venv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tradex_env')
-    if not os.path.exists(venv_path):
-        print("❌ Virtual environment not found!")
-        print("📦 Creating virtual environment...")
+    def __init__(self):
+        """Initialize the complete trading system"""
+        self.config = Config()
+        self.logger = self._setup_logging()
+        
+        self.logger.info("Initializing TradeX V3 Trading System...")
+        
+        # Initialize all modules
         try:
-            subprocess.run([sys.executable, '-m', 'venv', venv_path], check=True)
-            print("✅ Virtual environment created successfully!")
-        except subprocess.CalledProcessError as e:
-            print(f"❌ Failed to create virtual environment: {e}")
-            return False
+            self.data_retriever = DataRetriever()
+            self.ml_predictor = MLPredictor()
+            self.risk_module = RiskModule()
+            self.logic_engine = LogicEngine()
+            self.executor = Executor()
+            self.trade_logger = TradeLogger()
+            
+            # Initialize terminal interface
+            self.terminal_interface = TerminalInterface(self)
+            
+            self.logger.info("All modules initialized successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize trading system: {e}")
+            raise
     
-    # Get the path to the virtual environment's Python executable
-    if os.name == 'nt':  # Windows
-        python_path = os.path.join(venv_path, 'Scripts', 'python.exe')
-    else:  # Unix/Linux/macOS
-        python_path = os.path.join(venv_path, 'bin', 'python')
-    
-    if not os.path.exists(python_path):
-        print(f"❌ Python executable not found at: {python_path}")
-        return False
-    
-    # If we're not in the virtual environment, restart with the virtual environment's Python
-    if sys.executable != python_path:
-        print("🔄 Activating virtual environment...")
-        print(f"   Current Python: {sys.executable}")
-        print(f"   Virtual Python: {python_path}")
+    def _setup_logging(self):
+        """Setup logging configuration"""
+        # Create logs directory if it doesn't exist
+        os.makedirs('logs', exist_ok=True)
         
-        # Restart the script with the virtual environment's Python
-        os.execv(python_path, [python_path] + sys.argv)
-    
-    return True
-
-def setup_logging():
-    """Setup logging configuration"""
-    logger.remove()
-    logger.add(
-        sys.stdout,
-        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-        level=Config.LOG_LEVEL
-    )
-    logger.add(
-        Config.LOG_FILE,
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
-        level=Config.LOG_LEVEL,
-        rotation="1 day",
-        retention="7 days"
-    )
-
-def check_environment():
-    """Check if environment is properly configured"""
-    required_vars = ['CB_API_KEY_NAME', 'CB_PRIVATE_KEY']
-    missing_vars = []
-    
-    for var in required_vars:
-        if not os.getenv(var):
-            missing_vars.append(var)
-    
-    if missing_vars:
-        logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
-        logger.error("Please set these variables in your .env file or environment")
-        return False
-    
-    return True
-
-def run_trading_engine():
-    """Run the main trading engine"""
-    logger.info("Starting TradeX Trading Engine...")
-    
-    try:
-        engine = TradingEngine()
-        engine.run()
-    except KeyboardInterrupt:
-        logger.info("Trading engine stopped by user")
-    except Exception as e:
-        logger.error(f"Trading engine error: {e}")
-        raise
-
-def run_backtest(args):
-    """Run backtesting mode"""
-    print("🚀 Starting TradeX Backtest Engine...")
-    logger.info("Starting TradeX Backtest Engine...")
-    
-    try:
-        from datetime import datetime
-        
-        # Parse dates
-        start_date = None
-        end_date = None
-        
-        if args.start_date:
-            start_date = datetime.strptime(args.start_date, '%Y-%m-%d')
-        if args.end_date:
-            end_date = datetime.strptime(args.end_date, '%Y-%m-%d')
-        
-        # Run backtest
-        backtest = BacktestEngine(
-            start_date=start_date,
-            end_date=end_date,
-            initial_balance=args.initial_balance
+        # Configure logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(f'logs/tradex_{datetime.now().strftime("%Y%m%d")}.log'),
+                logging.StreamHandler(sys.stdout)
+            ]
         )
         
-        backtest.run_backtest()
-        
-    except Exception as e:
-        logger.error(f"Backtest error: {e}")
-        print(f"❌ Backtest error: {e}")
-        raise
-
-def run_paper_trading():
-    """Run paper trading mode (simulated trading with real data)"""
-    print("📝 Starting TradeX Paper Trading Mode...")
-    logger.info("Starting TradeX Paper Trading Mode...")
+        return logging.getLogger(__name__)
     
-    try:
-        from trading_engine import TradingEngine
-        
-        # Create trading engine with paper trading flag
-        engine = TradingEngine(paper_trading=True)
-        engine.run()
-        
-    except KeyboardInterrupt:
-        logger.info("Paper trading stopped by user")
-    except Exception as e:
-        logger.error(f"Paper trading error: {e}")
-        print(f"❌ Paper trading error: {e}")
-        raise
-
-def run_report_generation(args):
-    """Generate PDF report with trading performance metrics"""
-    print("📄 Starting TradeX Report Generation...")
-    logger.info("Starting TradeX Report Generation...")
+    def run_trading_cycle(self):
+        """Run one complete trading cycle"""
+        try:
+            self.logger.info("Starting trading cycle...")
+            
+            # 1. Get market data
+            market_data = self.data_retriever.get_market_data()
+            if not market_data:
+                self.logger.warning("Failed to get market data, skipping cycle")
+                return False
+            
+            # 2. Get technical indicators
+            indicators = self.data_retriever.get_latest_indicators()
+            
+            # 3. Get ML prediction
+            ml_prediction = self.ml_predictor.predict(market_data['dataframe'])
+            
+            # 4. Analyze market conditions
+            technical_analysis = self.logic_engine.analyze_technical_indicators(indicators)
+            trend_analysis = self.logic_engine.analyze_trend_confirmation(market_data)
+            liquidity_analysis = self.logic_engine.analyze_liquidity_volatility(market_data)
+            
+            # 5. Make trading decision
+            decision = self.logic_engine.make_decision(
+                technical_analysis, ml_prediction, trend_analysis, liquidity_analysis, market_data
+            )
+            
+            # 6. Check risk management
+            if decision and decision['decision'] != 'HOLD':
+                risk_check = self.risk_module.check_risk_limits(decision)
+                if not risk_check['allowed']:
+                    self.logger.warning(f"Risk check failed: {risk_check['reason']}")
+                    decision = {'decision': 'HOLD', 'confidence': 0.0, 'reason': 'Risk limits exceeded'}
+            
+            # 7. Execute trade if decision is made
+            if decision and decision['decision'] != 'HOLD':
+                trade_result = self.executor.execute_trade(decision, market_data)
+                if trade_result:
+                    self.logger.info(f"Trade executed: {trade_result}")
+                else:
+                    self.logger.warning("Trade execution failed")
+            
+            # 8. Log decision
+            self.trade_logger.log_decision(decision, market_data['current_price'])
+            
+            self.logger.info("Trading cycle completed successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error in trading cycle: {e}")
+            return False
     
-    try:
-        from report_generator import TradeXReportGenerator
+    def run_automated_trading(self):
+        """Run automated trading in a loop"""
+        self.logger.info("Starting automated trading...")
         
-        # Create report generator
-        generator = TradeXReportGenerator(days_back=args.days if hasattr(args, 'days') else 30)
+        while True:
+            try:
+                # Run trading cycle
+                success = self.run_trading_cycle()
+                
+                if not success:
+                    self.logger.warning("Trading cycle failed, waiting before retry...")
+                    time.sleep(self.config.UPDATE_INTERVAL * 2)
+                else:
+                    # Wait for next cycle
+                    time.sleep(self.config.UPDATE_INTERVAL)
+                    
+            except KeyboardInterrupt:
+                self.logger.info("Automated trading stopped by user")
+                break
+            except Exception as e:
+                self.logger.error(f"Unexpected error in automated trading: {e}")
+                time.sleep(self.config.UPDATE_INTERVAL)
+    
+    def run_interactive_mode(self):
+        """Run in interactive mode with terminal interface"""
+        self.logger.info("Starting interactive mode...")
         
-        # Load data
-        if not generator.load_trading_data():
-            print("❌ No trading data found. Make sure you have logs and trading activity.")
-            return
+        try:
+            # Show welcome message
+            self.terminal_interface.print_header()
+            self.terminal_interface.print_success("TradeX V3 - BTC Trading Platform")
+            self.terminal_interface.print_info("Interactive mode started successfully")
+            print()
+            
+            # Show main menu
+            self.terminal_interface.show_main_menu()
+            
+        except KeyboardInterrupt:
+            self.logger.info("Interactive mode stopped by user")
+        except Exception as e:
+            self.logger.error(f"Error in interactive mode: {e}")
+    
+    def run_backtest_mode(self, start_date, end_date):
+        """Run backtest mode for historical analysis"""
+        self.logger.info(f"Starting backtest from {start_date} to {end_date}")
         
-        # Generate report
-        filename = generator.generate_pdf_report(args.output if hasattr(args, 'output') else None)
+        try:
+            # Get historical data
+            historical_data = self.data_retriever.get_historical_data(start_date, end_date)
+            
+            if historical_data.empty:
+                self.logger.error("No historical data available for backtest")
+                return
+            
+            # Run backtest
+            results = self._run_backtest(historical_data)
+            
+            # Display results
+            self._display_backtest_results(results)
+            
+        except Exception as e:
+            self.logger.error(f"Error in backtest mode: {e}")
+    
+    def _run_backtest(self, historical_data):
+        """Run backtest on historical data"""
+        results = {
+            'trades': [],
+            'initial_balance': 10000,  # $10,000 starting balance
+            'current_balance': 10000,
+            'total_trades': 0,
+            'winning_trades': 0,
+            'losing_trades': 0
+        }
         
-        print(f"\n🎉 Report generated successfully!")
-        print(f"📄 File: {filename}")
+        position = None
         
-    except Exception as e:
-        logger.error(f"Report generation error: {e}")
-        print(f"❌ Report generation error: {e}")
-        raise
+        for i in range(len(historical_data) - 1):
+            try:
+                # Get data up to current point
+                current_data = historical_data.iloc[:i+1]
+                current_price = current_data.iloc[-1]['close']
+                
+                # Get indicators for current data
+                indicators = self.data_retriever.calculate_indicators(current_data)
+                if not indicators:
+                    continue
+                
+                # Get ML prediction
+                ml_prediction = self.ml_predictor.predict(current_data)
+                
+                # Analyze market conditions
+                technical_analysis = self.logic_engine.analyze_technical_indicators(indicators.iloc[-1])
+                trend_analysis = self.logic_engine.analyze_trend_confirmation({'dataframe': current_data})
+                liquidity_analysis = self.logic_engine.analyze_liquidity_volatility({'dataframe': current_data})
+                
+                # Make decision
+                decision = self.logic_engine.make_decision(
+                    technical_analysis, ml_prediction, trend_analysis, liquidity_analysis
+                )
+                
+                # Execute trades based on decision
+                if decision and decision['decision'] != 'HOLD':
+                    if decision['decision'] == 'BUY' and position is None:
+                        # Open long position
+                        position = {
+                            'type': 'LONG',
+                            'entry_price': current_price,
+                            'entry_time': current_data.index[-1],
+                            'quantity': results['current_balance'] * 0.95 / current_price  # Use 95% of balance
+                        }
+                        results['total_trades'] += 1
+                        
+                    elif decision['decision'] == 'SELL' and position is not None:
+                        # Close position
+                        exit_price = current_price
+                        pnl = (exit_price - position['entry_price']) * position['quantity']
+                        results['current_balance'] += pnl
+                        
+                        trade_result = {
+                            'entry_time': position['entry_time'],
+                            'exit_time': current_data.index[-1],
+                            'entry_price': position['entry_price'],
+                            'exit_price': exit_price,
+                            'quantity': position['quantity'],
+                            'pnl': pnl,
+                            'return_pct': (pnl / (position['entry_price'] * position['quantity'])) * 100
+                        }
+                        
+                        results['trades'].append(trade_result)
+                        
+                        if pnl > 0:
+                            results['winning_trades'] += 1
+                        else:
+                            results['losing_trades'] += 1
+                        
+                        position = None
+                
+            except Exception as e:
+                self.logger.error(f"Error in backtest iteration {i}: {e}")
+                continue
+        
+        # Close any open position at the end
+        if position is not None:
+            final_price = historical_data.iloc[-1]['close']
+            pnl = (final_price - position['entry_price']) * position['quantity']
+            results['current_balance'] += pnl
+            
+            trade_result = {
+                'entry_time': position['entry_time'],
+                'exit_time': historical_data.index[-1],
+                'entry_price': position['entry_price'],
+                'exit_price': final_price,
+                'quantity': position['quantity'],
+                'pnl': pnl,
+                'return_pct': (pnl / (position['entry_price'] * position['quantity'])) * 100
+            }
+            
+            results['trades'].append(trade_result)
+            
+            if pnl > 0:
+                results['winning_trades'] += 1
+            else:
+                results['losing_trades'] += 1
+        
+        return results
+    
+    def _display_backtest_results(self, results):
+        """Display backtest results"""
+        print("\n" + "="*60)
+        print("BACKTEST RESULTS")
+        print("="*60)
+        
+        total_return = ((results['current_balance'] - results['initial_balance']) / results['initial_balance']) * 100
+        
+        print(f"Initial Balance: ${results['initial_balance']:,.2f}")
+        print(f"Final Balance: ${results['current_balance']:,.2f}")
+        print(f"Total Return: {total_return:+.2f}%")
+        print()
+        
+        print(f"Total Trades: {results['total_trades']}")
+        print(f"Winning Trades: {results['winning_trades']}")
+        print(f"Losing Trades: {results['losing_trades']}")
+        
+        if results['total_trades'] > 0:
+            win_rate = (results['winning_trades'] / results['total_trades']) * 100
+            print(f"Win Rate: {win_rate:.2f}%")
+        
+        if results['trades']:
+            avg_win = sum(t['pnl'] for t in results['trades'] if t['pnl'] > 0) / max(1, results['winning_trades'])
+            avg_loss = sum(t['pnl'] for t in results['trades'] if t['pnl'] < 0) / max(1, results['losing_trades'])
+            print(f"Average Win: ${avg_win:,.2f}")
+            print(f"Average Loss: ${avg_loss:,.2f}")
+        
+        print("="*60)
+    
+    def cleanup(self):
+        """Cleanup resources"""
+        self.logger.info("Cleaning up trading system...")
+        
+        try:
+            # Stop any running threads
+            if hasattr(self, 'terminal_interface') and self.terminal_interface.monitoring:
+                self.terminal_interface.stop_monitoring()
+            
+            # Cleanup old data
+            if hasattr(self, 'trade_logger'):
+                self.trade_logger.cleanup_old_data()
+            
+            self.logger.info("Cleanup completed")
+            
+        except Exception as e:
+            self.logger.error(f"Error during cleanup: {e}")
+
+def signal_handler(signum, frame):
+    """Handle system signals for graceful shutdown"""
+    print("\nReceived signal to shutdown. Cleaning up...")
+    if hasattr(signal_handler, 'trading_system'):
+        signal_handler.trading_system.cleanup()
+    sys.exit(0)
 
 def main():
     """Main entry point"""
-    # Activate virtual environment automatically
-    if not activate_virtual_environment():
-        print("❌ Failed to activate virtual environment. Please run setup_jetson.sh first.")
-        sys.exit(1)
+    print("TradeX V3 - BTC Trading Platform")
+    print("="*50)
     
-    parser = argparse.ArgumentParser(description='TradeX Crypto Trading Platform')
-    parser.add_argument('--mode', choices=['trade', 'train', 'backtest', 'paper', 'report'], 
-                       default='trade', help='Operation mode')
-    parser.add_argument('--config', help='Path to config file')
-    parser.add_argument('--paper', action='store_true', 
-                       help='Run in paper trading mode (simulated trading)')
-    parser.add_argument('--dry-run', action='store_true', 
-                       help='Run in dry-run mode (no actual trades)')
-    
-    # Backtest specific arguments
-    parser.add_argument('--start-date', type=str, help='Backtest start date (YYYY-MM-DD)')
-    parser.add_argument('--end-date', type=str, help='Backtest end date (YYYY-MM-DD)')
-    parser.add_argument('--initial-balance', type=float, default=1000, help='Initial balance for backtest')
-    
-    # Report specific arguments
-    parser.add_argument('--days', type=int, default=30, help='Number of days to analyze for report (default: 30)')
-    parser.add_argument('--output', type=str, help='Output filename for PDF report')
-    
-    args = parser.parse_args()
-    
-    # Setup logging
-    setup_logging()
-    
-    # Check environment (skip for backtest mode)
-    if args.mode != 'backtest' and not check_environment():
-        sys.exit(1)
-    
-    logger.info("=" * 60)
-    logger.info("TradeX Crypto Trading Platform")
-    logger.info("=" * 60)
-    logger.info(f"Mode: {args.mode}")
-    logger.info(f"Supported pairs: {', '.join(Config.SUPPORTED_PAIRS)}")
-    logger.info(f"Trade amount: ${Config.TRADE_AMOUNT_USD}")
-    logger.info(f"Stop loss: {Config.STOP_LOSS_PERCENTAGE*100}%")
-    logger.info(f"Take profit: {Config.TAKE_PROFIT_PERCENTAGE*100}%")
-    logger.info("=" * 60)
+    # Register signal handlers
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     
     try:
-        if args.mode == 'trade':
-            if args.paper:
-                logger.info("PAPER TRADING MODE - Simulated trading with real data")
-                run_paper_trading()
-            elif args.dry_run:
-                logger.info("DRY RUN MODE - No actual trades will be placed")
-                # TODO: Implement dry-run mode
+        # Initialize trading system
+        trading_system = TradingSystem()
+        signal_handler.trading_system = trading_system
+        
+        # Parse command line arguments
+        if len(sys.argv) > 1:
+            mode = sys.argv[1].lower()
+            
+            if mode == 'auto':
+                # Automated trading mode
+                trading_system.run_automated_trading()
+            elif mode == 'backtest':
+                # Backtest mode
+                if len(sys.argv) >= 4:
+                    start_date = sys.argv[2]
+                    end_date = sys.argv[3]
+                    trading_system.run_backtest_mode(start_date, end_date)
+                else:
+                    print("Usage: python main.py backtest <start_date> <end_date>")
+                    print("Example: python main.py backtest 2024-01-01 2024-01-31")
             else:
-                run_trading_engine()
-        elif args.mode == 'train':
-            logger.info("Training ML models...")
-            train_models()
-        elif args.mode == 'backtest':
-            run_backtest(args)
-        elif args.mode == 'paper':
-            logger.info("PAPER TRADING MODE - Simulated trading with real data")
-            run_paper_trading()
-        elif args.mode == 'report':
-            logger.info("Generating PDF report...")
-            run_report_generation(args)
+                print(f"Unknown mode: {mode}")
+                print("Available modes: auto, backtest, interactive (default)")
+                return
+        else:
+            # Interactive mode (default)
+            trading_system.run_interactive_mode()
     
+    except KeyboardInterrupt:
+        print("\nShutdown requested by user")
     except Exception as e:
-        logger.error(f"Application error: {e}")
-        sys.exit(1)
+        print(f"Fatal error: {e}")
+        logging.error(f"Fatal error: {e}")
+    finally:
+        if 'trading_system' in locals():
+            trading_system.cleanup()
 
 if __name__ == "__main__":
     main()

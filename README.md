@@ -1,449 +1,200 @@
-# TradeX - Crypto Trading Automation Platform
+# TradeX V3 - Automated BTC Trading Platform
 
-A sophisticated automated trading platform for Bitcoin (BTC) and Ethereum (ETH) that combines traditional technical analysis with machine learning for pattern recognition and price prediction. **Designed for 24/7 crypto holdings trading with comprehensive safety protocols and automated monitoring.**
+A sophisticated automated trading platform specifically designed for Bitcoin (BTC) trading, featuring advanced technical analysis, machine learning predictions, and comprehensive risk management.
 
-## Features
+## 🚀 Features
 
-### 🤖 Machine Learning Engine
-- **Ensemble Models**: Combines Random Forest, Gradient Boosting, and XGBoost for robust predictions
-- **LSTM Neural Networks**: Deep learning for sequence prediction and pattern recognition
-- **Feature Engineering**: 50+ technical indicators and chart patterns
-- **Adaptive Learning**: Models retrain daily with new market data
+### Core Components
+- **Data Retriever**: Real-time BTC price data from Binance API
+- **ML Predictor**: Lightweight LSTM model for price prediction
+- **Risk Module**: Dynamic stop-loss, take-profit, and position sizing
+- **Logic Engine**: Weighted decision-making system
+- **Executor**: Trade execution with paper trading support
+- **Trade Logger**: Comprehensive analytics and performance tracking
+- **Terminal Interface**: Beautiful interactive monitoring dashboard
 
-### 📊 Technical Analysis
-- **Chart Pattern Recognition**: Detects double tops/bottoms, head & shoulders, triangles, flags, cup & handle
-- **Technical Indicators**: RSI, MACD, Bollinger Bands, ATR, ADX, Stochastic, Williams %R, CCI
-- **Support/Resistance**: Dynamic level detection and distance analysis
-- **Volume Analysis**: OBV, VWAP, volume ratios and surges
+### Advanced Features
+- **Multi-timeframe Analysis**: 1m, 5m, 15m, 1h, 4h, 1d data integration
+- **Technical Indicators**: RSI, MACD, Bollinger Bands, Moving Averages
+- **Machine Learning**: LSTM-based price prediction with confidence scoring
+- **Risk Management**: Dynamic position sizing, daily loss limits, trade frequency controls
+- **Paper Trading**: Safe testing environment with simulated trading
+- **Real-time Monitoring**: Live dashboard with market data and system status
+- **Backtesting**: Historical performance analysis
+- **Performance Analytics**: Comprehensive trade logging and metrics
 
-### 🛡️ Advanced Safety Protocols
-- **Balance Protection**: Prevents selling below minimum crypto balances
-- **Emergency Stop**: Automatic shutdown on consecutive errors
-- **Position Sizing**: Dynamic sizing based on ML confidence and volatility
-- **Stop-Loss/Take-Profit**: Automated risk management
-- **Drawdown Protection**: Maximum 15% drawdown limit
-- **Correlation Analysis**: Avoids over-exposure to correlated assets
-- **Daily Trade Limits**: Prevents overtrading
-- **Real-time Balance Monitoring**: Continuous account balance verification
+## 📋 Requirements
 
-### 🔄 24/7 Automation & Monitoring
-- **System Health Monitoring**: Real-time CPU, memory, and disk usage tracking
-- **Automatic Recovery**: Self-healing system with automatic restart capabilities
-- **Network Connectivity**: Continuous network and API connectivity checks
-- **State Persistence**: Automatic state saving and recovery across restarts
-- **Graceful Shutdown**: Proper cleanup and position management on shutdown
-- **Process Monitoring**: External monitor process for system reliability
-- **Comprehensive Logging**: Detailed logs with automatic rotation
-- **Live Status Dashboard**: Real-time system status updates every 2 seconds
-
-### 🔄 Automated Trading
-- **24/7 Operation**: Designed for Jetson Orin Nano deployment
-- **Real-time Analysis**: Hourly market analysis and decision making
-- **Binance Integration**: Direct API connection for execution
-- **Comprehensive Logging**: Detailed logs for monitoring and debugging
-- **Crypto Holdings Trading**: Works with your existing BTC/ETH holdings
-
-### 📈 Backtesting Engine
-- **Historical Data Testing**: Tests with real Binance historical data
-- **Complete System Simulation**: Tests entire trading logic including ML models
-- **Performance Analytics**: Comprehensive metrics and risk analysis
-- **Visual Reports**: Charts and graphs for performance analysis
-- **Risk Metrics**: Sharpe ratio, drawdown, volatility analysis
-
-## Installation
-
-### Prerequisites
 - Python 3.8+
-- Jetson Orin Nano (recommended) or any Linux system
-- Binance API credentials
-- Existing crypto holdings in Binance account
+- Binance API credentials (optional for paper trading)
+- Internet connection for market data
 
-### Setup
+## 🛠️ Installation
 
 1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd TradeX
-```
+   ```bash
+   git clone <repository-url>
+   cd TradeX
+   ```
 
 2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables** (optional)
+   Create a `.env` file in the project root:
+   ```env
+   BINANCE_API_KEY=your_api_key_here
+   BINANCE_SECRET_KEY=your_secret_key_here
+   BINANCE_TESTNET=True
+   ```
+
+## 🚀 Usage
+
+### Interactive Mode (Recommended for beginners)
 ```bash
-pip install -r requirements.txt
+python main.py
 ```
+This launches the beautiful terminal interface with menu options for monitoring, testing, and analytics.
 
-3. **Set up environment variables**
+### Automated Trading Mode
 ```bash
-cp env_example.txt .env
-# Edit .env with your Binance API credentials
-# API Key and Secret are already configured
+python main.py auto
 ```
+Runs the system in fully automated mode with continuous trading cycles.
 
-4. **Get Binance API credentials**
-- Go to https://www.binance.com/en/my/settings/api-management
-- Create a new API key with trading permissions
-- Add only the passphrase to your `.env` file
-
-## Usage
-
-### 🚀 **Single Command Startup (Recommended)**
+### Backtesting Mode
 ```bash
-python start_tradex.py
+python main.py backtest 2024-01-01 2024-01-31
 ```
-This single command will:
-- ✅ Check environment and dependencies
-- ✅ Start the trading system automatically
-- ✅ Start the external monitor
-- ✅ Display live status dashboard (updates every 2 seconds)
-- ✅ Handle graceful shutdown with Ctrl+C
+Runs historical backtesting for the specified date range.
 
-### Training ML Models (First Time)
-```bash
-python main.py --mode train
-```
-This will:
-- Collect historical data from Binance
-- Calculate technical indicators and identify patterns
-- Train ensemble and LSTM models
-- Save models to `models/` directory
-
-### 📈 **Backtesting (Test Your Strategy)**
-```bash
-# Test last 30 days (default)
-python main.py --mode backtest
-
-# Test specific date range
-python main.py --mode backtest --start-date 2024-01-01 --end-date 2024-01-31
-
-# Test with different initial balance
-python main.py --mode backtest --initial-balance 5000
-
-# Run backtest directly
-python backtest_engine.py --start-date 2024-01-01 --end-date 2024-01-31
-```
-
-### 📝 **Paper Trading (Simulated Live Trading)**
-```bash
-# Start paper trading with real market data
-python main.py --mode paper
-
-# Paper trading uses real market data but simulates all trades
-# Perfect for testing your strategy before going live
-```
-
-### Alternative Startup Methods
-
-#### Manual Startup (Advanced Users)
-```bash
-# Terminal 1: Start trading system
-python main.py --mode trade
-
-# Terminal 2: Start monitor (optional)
-python monitor.py
-```
-
-#### Systemd Service (Production)
-```bash
-# Install as system service
-sudo systemctl enable tradex
-sudo systemctl start tradex
-
-# Monitor the service
-sudo systemctl status tradex
-tail -f tradex.log
-```
-
-### Dry Run (Testing)
-```bash
-python main.py --mode trade --dry-run
-```
-
-## Live Status Dashboard
-
-When you run `python start_tradex.py`, you'll see a live dashboard that updates every 2 seconds:
+## 📊 System Architecture
 
 ```
-================================================================================
-🔄 TRADEX SYSTEM STATUS
-================================================================================
-⏰ Time: 2024-01-15 14:30:25
-⏱️  Uptime: 0:02:15
-
-✅ Trading System: RUNNING (PID: 12345)
-   📊 Memory: 2.3% | CPU: 1.2%
-✅ Monitor: RUNNING (PID: 12346)
-   📊 Memory: 0.8% | CPU: 0.3%
-
-💻 SYSTEM RESOURCES:
-   🧠 Memory: 45.2%
-   🔥 CPU: 12.8%
-   💾 Disk: 23.1%
-
-🌐 NETWORK STATUS:
-   ✅ Network: CONNECTED
-   ✅ Binance API: CONNECTED
-
-📈 TRADING STATUS:
-   🟡 Trading: RUNNING (Monitoring markets)
-
-🔧 QUICK ACTIONS:
-   Press Ctrl+C to stop TradeX
-   Check logs: tail -f tradex.log
-   Check state: cat system_state.json
-================================================================================
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Data Retriever│    │   ML Predictor  │    │   Risk Module   │
+│                 │    │                 │    │                 │
+│ • Binance API   │    │ • LSTM Model    │    │ • Stop Loss     │
+│ • Technical     │    │ • Price Pred    │    │ • Take Profit   │
+│   Indicators    │    │ • Confidence    │    │ • Position Size │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │  Logic Engine   │
+                    │                 │
+                    │ • Weighted      │
+                    │   Decisions     │
+                    │ • Signal        │
+                    │   Generation    │
+                    └─────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │    Executor     │
+                    │                 │
+                    │ • Trade Exec    │
+                    │ • Paper Trading │
+                    │ • Order Mgmt    │
+                    └─────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │  Trade Logger   │
+                    │                 │
+                    │ • Performance   │
+                    │ • Analytics     │
+                    │ • Data Export   │
+                    └─────────────────┘
 ```
 
-## Backtesting Results
+## 🎯 Trading Strategy
 
-After running a backtest, you'll get comprehensive results:
+The system uses a multi-factor decision-making approach:
 
-```
-================================================================================
-📊 TRADEX BACKTEST RESULTS
-================================================================================
-📅 Period: 2024-01-01 to 2024-01-31
-💰 Initial Balance: $1,000.00
-💰 Final Balance: $1,085.00
-📈 Total Return: $85.00 (8.50%)
+1. **Technical Analysis (40%)**: RSI, MACD, Bollinger Bands, Moving Averages
+2. **ML Prediction (30%)**: LSTM-based price prediction
+3. **Trend Confirmation (20%)**: Multi-timeframe trend analysis
+4. **Liquidity & Volatility (10%)**: Market condition assessment
 
-📊 TRADING METRICS:
-   🔄 Total Trades: 45
-   ✅ Winning Trades: 28
-   ❌ Losing Trades: 17
-   🎯 Win Rate: 62.2%
-   💵 Total P&L: $850.00
-   📈 Average Win: $45.20
-   📉 Average Loss: -$25.80
-   ⚖️  Profit Factor: 2.15
+### Decision Process
+1. Fetch real-time market data
+2. Calculate technical indicators
+3. Generate ML prediction
+4. Analyze market conditions
+5. Apply risk management rules
+6. Execute trade if conditions are met
+7. Log all decisions and results
 
-📊 RISK METRICS:
-   📊 Volatility: 0.25
-   📈 Sharpe Ratio: 1.85
-   📉 Max Drawdown: 3.20%
+## ⚙️ Configuration
 
-📁 REPORTS SAVED TO:
-   📄 backtest_reports/performance_metrics.json
-   📄 backtest_reports/trade_history.csv
-   📄 backtest_reports/daily_balances.csv
-   📊 backtest_reports/performance_plots.png
-================================================================================
-```
-
-## Configuration
-
-Edit `config.py` to customize trading parameters:
+Key configuration options in `config.py`:
 
 ```python
-# Trading Parameters - Modified for crypto holdings
-TRADE_AMOUNT_USD = 100  # USD equivalent per trade
-MAX_POSITION_SIZE = 0.1  # 10% of portfolio per position
-STOP_LOSS_PERCENTAGE = 0.02  # 2% stop loss
-TAKE_PROFIT_PERCENTAGE = 0.04  # 4% take profit
+# Trading Settings
+SYMBOL = 'BTCUSDT'
+PAPER_TRADING = True
+UPDATE_INTERVAL = 60  # seconds
 
-# Safety Protocols
+# Risk Management
+STOP_LOSS_PERCENTAGE = 2.0
+TAKE_PROFIT_PERCENTAGE = 4.0
 MAX_DAILY_TRADES = 10
-MAX_DRAWDOWN = 0.15  # 15% maximum drawdown
+MAX_DAILY_LOSS = 5.0
 
-# Balance Safety Limits
-MIN_BTC_BALANCE = 0.001  # Minimum BTC to keep (prevent selling all)
-MIN_ETH_BALANCE = 0.01   # Minimum ETH to keep (prevent selling all)
-MIN_USD_BALANCE = 50     # Minimum USD to keep for fees
-
-# 24/7 Automation Settings
-HEARTBEAT_INTERVAL = 300  # 5 minutes - system health check interval
-MAX_CONSECUTIVE_ERRORS = 5  # Emergency stop after this many errors
-MAX_RECOVERY_ATTEMPTS = 10  # Maximum recovery attempts before exit
+# Logic Engine Weights
+TECHNICAL_INDICATORS_WEIGHT = 0.4
+ML_PREDICTION_WEIGHT = 0.3
+TREND_CONFIRMATION_WEIGHT = 0.2
+LIQUIDITY_VOLATILITY_WEIGHT = 0.1
 ```
 
-## Safety Features
+## 📈 Performance Monitoring
 
-### 🚨 Emergency Protocols
-- **Automatic Shutdown**: Stops trading after 5 consecutive errors
-- **Balance Verification**: Checks account balances before every trade
-- **Minimum Balance Protection**: Never sells below minimum crypto amounts
-- **Real-time Monitoring**: Continuous balance and error tracking
-- **System Health Checks**: Monitors CPU, memory, and disk usage
-- **Network Monitoring**: Continuous connectivity verification
+The system provides comprehensive performance metrics:
 
-### 💰 Balance Management
-- **Smart Position Sizing**: Calculates safe trade amounts based on available balances
-- **USD Reserve**: Maintains minimum USD balance for fees
-- **Crypto Reserves**: Keeps minimum BTC/ETH amounts
-- **Portfolio Limits**: Maximum 10% of portfolio per position
+- **Win Rate**: Percentage of profitable trades
+- **Profit Factor**: Ratio of gross profit to gross loss
+- **Sharpe Ratio**: Risk-adjusted return measure
+- **Maximum Drawdown**: Largest peak-to-trough decline
+- **Average Win/Loss**: Mean profit and loss per trade
 
-### 📊 Risk Controls
-- **Daily Limits**: Maximum 10 trades per day
-- **Stop Losses**: Automatic 2% stop loss on all positions
-- **Take Profits**: 4% take profit targets
-- **Drawdown Protection**: Automatic pause at 15% drawdown
-- **Correlation Limits**: Avoids trading when BTC/ETH correlation > 70%
+## 🔒 Safety Features
 
-### 🔧 24/7 Reliability
-- **State Persistence**: Saves system state every hour for recovery
-- **Automatic Recovery**: Attempts to recover from errors automatically
-- **Process Monitoring**: External monitor ensures system stays running
-- **Graceful Shutdown**: Proper cleanup on system shutdown
-- **Resource Monitoring**: Tracks system resources and warns of issues
+- **Paper Trading Mode**: Test strategies without real money
+- **Risk Limits**: Daily loss limits and trade frequency controls
+- **Position Sizing**: Dynamic sizing based on account balance
+- **Stop Loss**: Automatic loss protection
+- **Error Handling**: Robust error handling and logging
 
-## Machine Learning Strategy
+## 📝 Logging
 
-### Pattern Recognition
-The ML system learns to recognize:
-- **Reversal Patterns**: Double tops/bottoms, head & shoulders
-- **Continuation Patterns**: Triangles, flags, pennants
-- **Candlestick Patterns**: Doji, hammer, shooting star
-- **Volume Patterns**: Breakouts, accumulation/distribution
+All system activities are logged to:
+- Console output for real-time monitoring
+- Daily log files in `logs/` directory
+- SQLite database for trade history and analytics
 
-### Feature Engineering
-- **Price Action**: Returns, volatility, support/resistance distances
-- **Technical Indicators**: 20+ momentum, trend, and volatility indicators
-- **Volume Analysis**: Volume ratios, OBV, VWAP
-- **Pattern Features**: Binary indicators for each detected pattern
-- **Time Series Features**: Lagged values and rolling statistics
+## 🚨 Disclaimer
 
-### Model Architecture
-- **Ensemble Model**: Combines predictions from multiple algorithms
-- **LSTM Model**: Processes sequential data for temporal patterns
-- **Confidence Scoring**: Probability-based decision making
-- **Adaptive Thresholds**: Dynamic signal thresholds based on market conditions
+This software is for educational and research purposes only. Trading cryptocurrencies involves substantial risk of loss. Always test thoroughly in paper trading mode before using real funds. The authors are not responsible for any financial losses incurred through the use of this software.
 
-## Deployment on Jetson Orin Nano
+## 🤝 Contributing
 
-### System Requirements
-- Jetson Orin Nano Developer Kit
-- 8GB RAM (minimum)
-- 32GB eMMC storage
-- Ubuntu 20.04 or later
+Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
 
-### Setup Commands
-```bash
-# Update system
-sudo apt update && sudo apt upgrade -y
+## 📄 License
 
-# Install Python dependencies
-sudo apt install python3-pip python3-venv
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-# Create virtual environment
-python3 -m venv tradex_env
-source tradex_env/bin/activate
+## 🆘 Support
 
-# Install requirements
-pip install -r requirements.txt
+For support and questions:
+1. Check the logs in the `logs/` directory
+2. Review the configuration in `config.py`
+3. Test in paper trading mode first
+4. Open an issue on GitHub
 
-# Set up systemd service for auto-start
-sudo cp tradex.service /etc/systemd/system/
-sudo systemctl enable tradex
-sudo systemctl start tradex
-```
+---
 
-### Quick Start (Recommended)
-```bash
-# Just run this one command!
-python start_tradex.py
-```
-
-### Monitoring Commands
-```bash
-# Check service status
-sudo systemctl status tradex
-
-# View trading logs
-tail -f tradex.log
-
-# View monitor logs
-tail -f monitor.log
-
-# Monitor system resources
-htop
-nvidia-smi
-
-# Check system state
-cat system_state.json
-```
-
-## File Structure
-
-```
-TradeX/
-├── start_tradex.py        # 🚀 Single startup script (NEW!)
-├── main.py                 # Main entry point
-├── config.py              # Configuration settings
-├── trading_engine.py      # Main trading logic with 24/7 protocols
-├── data_collector.py      # Data collection and analysis
-├── ml_engine.py           # Machine learning models
-├── risk_manager.py        # Risk management
-├── train_models.py        # Model training script
-├── backtest_engine.py     # 📈 Backtesting engine (NEW!)
-├── monitor.py             # External system monitor
-├── requirements.txt       # Python dependencies
-├── env_example.txt        # Environment variables template
-├── tradex.service         # Systemd service file
-├── models/                # Trained ML models
-├── logs/                  # Log files
-├── backtest_reports/      # 📊 Backtest results (NEW!)
-├── system_state.json      # System state persistence
-└── README.md             # This file
-```
-
-## Monitoring and Logs
-
-The system provides comprehensive logging:
-- **Trading Logs**: All trades, signals, and decisions
-- **ML Logs**: Model predictions and confidence scores
-- **Risk Logs**: Position management and risk metrics
-- **Safety Logs**: Balance checks and emergency protocols
-- **System Logs**: Health monitoring and recovery attempts
-- **Monitor Logs**: External monitoring and restart events
-- **Launcher Logs**: Startup and shutdown events
-- **Backtest Logs**: Historical testing results
-- **Error Logs**: API errors and system issues
-
-Logs are automatically rotated daily and kept for 7 days.
-
-## 24/7 Operation Features
-
-### 🔄 Automatic Recovery
-- **Self-healing**: Automatically recovers from network issues
-- **Model Reloading**: Reloads ML models if they become corrupted
-- **State Restoration**: Restores trading state after restarts
-- **Error Recovery**: Attempts to recover from consecutive errors
-
-### 📊 Health Monitoring
-- **System Resources**: Monitors CPU, memory, and disk usage
-- **Network Status**: Checks connectivity to Binance API
-- **Process Health**: Verifies trading process is responsive
-- **Performance Metrics**: Tracks system performance over time
-
-### 🛡️ Reliability Features
-- **Graceful Shutdown**: Proper cleanup on system shutdown
-- **State Persistence**: Saves state every hour for recovery
-- **External Monitoring**: Separate monitor process for reliability
-- **Automatic Restart**: Restarts system if it becomes unresponsive
-
-## Disclaimer
-
-This software is for educational and research purposes. Cryptocurrency trading involves substantial risk of loss. Use at your own risk. The authors are not responsible for any financial losses.
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Support
-
-For issues and questions:
-1. **Use the single startup command**: `python start_tradex.py`
-2. **Test your strategy first**: `python main.py --mode backtest`
-3. Check the logs in `tradex.log` and `monitor.log`
-4. Review the configuration in `config.py`
-5. Ensure your Binance API credentials are correct
-6. Verify your internet connection and API access
-7. Check that you have sufficient crypto balances
-8. Monitor system resources with `htop` and `nvidia-smi`
-
-## Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+**TradeX V3** - Advanced BTC Trading Platform

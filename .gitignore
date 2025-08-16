@@ -1,3 +1,6 @@
+# Environment variables
+.env
+
 # Python
 __pycache__/
 *.py[cod]
@@ -25,66 +28,48 @@ MANIFEST
 venv/
 env/
 ENV/
-tradex_env/
-.venv/
-
-# Environment variables
-.env
-.env.local
-.env.production
-
-# Logs
-logs/
-*.log
-*.log.*
-
-# Models and data
-models/
-*.joblib
-*.pkl
-*.h5
-*.pb
-
-# Backtest results
-backtest_results/
-*.csv
-*.json
-*.png
-
-# System files
-.DS_Store
-Thumbs.db
+env.bak/
+venv.bak/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Data files
+data/
+*.csv
+*.json
+*.pickle
+*.pkl
+
+# Model files
+models/
+*.h5
+*.pth
+*.pt
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Temporary files
 *.tmp
 *.temp
-temp/
-tmp/
-
-# API keys and secrets (backup)
-*.key
-*.pem
-secrets/
-
-# State files
-system_state.json
-training_summary.json
-
-# Jupyter notebooks
-*.ipynb
-.ipynb_checkpoints/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
+.cache/
